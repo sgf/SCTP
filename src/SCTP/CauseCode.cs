@@ -6,8 +6,7 @@ using System.Threading.Tasks;
 
 namespace SCTP
 {
-    public enum CauseCode
-        : ushort
+    public enum CauseCode: ushort
     {
         InvalidStreamIdentifier = 1,
         MissingMandatoryParameter= 2,
