@@ -75,6 +75,8 @@
         /// <returns></returns>
         internal int FromArray(byte[] buffer, int offset)
         {
+
+
             int start = offset;
 
             this.Code = (CauseCode)NetworkHelpers.ToUInt16(buffer, offset);
@@ -283,9 +285,6 @@
     {
         public const uint _Base = (uint)CauseCode.UnresolvableAddress << 24 | 4 << 16;
     }
-
-
-
 
     /// <summary>
     /// 动态长度
