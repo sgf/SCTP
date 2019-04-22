@@ -2,11 +2,15 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Runtime.InteropServices;
     using SSN = System.UInt32;//流顺序号 TSN 和SSN（流顺序号）是相互独立的，TSN 用于保证传输的可靠性，SSN 用于保证流内消息的顺序传递。
     using TSN = System.UInt32;//发送顺序号（TSN） SCTP 在将数据（数据分片或未分片的用户数据报）发送给底层之前顺序地为 之分配一个发送顺序号（TSN）。
     //TSN 和SSN 在功能上使可靠传递和顺序传递分开。接收端证实所有收到的 TSNs，即使其中有些尚未收到。
     //包重发功能负责 TSN 的证实，还负责拥塞消除。
+
+
+
 
     /// <summary>
     /// 
@@ -22,6 +26,8 @@
         {
             this.Code = code;
         }
+
+
 
         /// <summary>
         /// Gets the error cause code.
@@ -75,6 +81,8 @@
         /// <returns></returns>
         internal int FromArray(byte[] buffer, int offset)
         {
+
+            //BinaryReader reader = new BinaryReader(buffer);
 
 
             int start = offset;
