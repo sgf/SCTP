@@ -5,7 +5,10 @@ using System.Text;
 
 namespace SCTP
 {
-    public static class IO
+    /// <summary>
+    /// Binary IO
+    /// </summary>
+    public static class BIO
     {
         //
         public unsafe static ref T Read<T>(this ReadOnlyMemory<byte> memory) where T : unmanaged
@@ -30,14 +33,27 @@ namespace SCTP
             return ref *p;
         }
 
-        public unsafe static ref T Read<T>(this ReadOnlySpan<byte> memory) where T : unmanaged
+        public unsafe static ref T Read<T>(this Span<byte> memory) where T : unmanaged
         {
             //ref memory.GetPinnableReference()
-            new ReadOnlySpan()
 
-            //
-            var p = (T*)(memory.Pointer);
+            var p = (T*)(memory.GetPinnableReference());
             return ref *p;
+        }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="memory"></param>
+        /// <param name="t"></param>
+        /// <returns>T size</returns>
+        public unsafe static int Write<T>(this Memory<byte> memory,T t) where T : unmanaged
+        {
+            var p = (T*)memory.Pin().Pointer;
+            *p = t;
+            return sizeof(T);
         }
     }
 }

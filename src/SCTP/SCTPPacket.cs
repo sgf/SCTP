@@ -238,10 +238,10 @@
         public static SCTPPacket Create(ushort sourcePort, ushort destinationPort, uint verificationTag, params Chunk[] chunks)
         {
             SCTPPacket packet = new SCTPPacket();
-            packet.Header.SourcePort = sourcePort;
-            packet.Header.DestinationPort = destinationPort;
-            packet.Header.Checksum = 0;
-            packet.Header.VerificationTag = verificationTag;
+            packet.Header.SrcPort = sourcePort;
+            packet.Header.DstPort = destinationPort;
+            packet.Header.Chksum = 0;
+            packet.Header.VerTag = verificationTag;
 
             if (chunks != null &&
                 chunks.Any())

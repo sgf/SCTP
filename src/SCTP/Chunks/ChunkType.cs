@@ -77,5 +77,12 @@
         /// Shutdown complete.
         /// </summary>
         ShutdownComplete = 14,
+
+        AUTH = 15,
+        PKTDROP = 129,
+        RE_CONFIG = 130,
+        FORWARDTSN = 192,
+        ASCONF = 193,
+        ASCONF_ACK = 128,
     }
 }
