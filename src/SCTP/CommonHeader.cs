@@ -3,27 +3,27 @@
     /// <summary>
     /// Represents a common header.
     /// </summary>
-    internal class CommonHeader
+    internal struct CommonHeader
     {
         /// <summary>
         /// Gets or sets the source port.
         /// </summary>
-        public ushort SourcePort { get; set; }
+        public ushort SrcPort { get; set; }
 
         /// <summary>
         /// Gets or sets the destination port.
         /// </summary>
-        public ushort DestinationPort { get; set; }
+        public ushort DstPort { get; set; }
 
         /// <summary>
         /// Gets or sets the verification tag.
         /// </summary>
-        public uint VerificationTag { get; set; }
+        public uint VerTag { get; set; }
 
         /// <summary>
         /// Gets or sets the checksum value.
         /// </summary>
-        public uint Checksum { get; set; }
+        public uint Chksum { get; set; }
 
         /// <summary>
         /// Writes the common header into a byte array at a given offset.
@@ -34,10 +34,10 @@
         public int ToArray(byte[] buffer, int offset)
         {
             int start = offset;
-            offset += NetworkHelpers.CopyTo(this.SourcePort, buffer, offset);
-            offset += NetworkHelpers.CopyTo(this.DestinationPort, buffer, offset);
-            offset += NetworkHelpers.CopyTo(this.VerificationTag, buffer, offset);
-            offset += NetworkHelpers.CopyTo(this.Checksum, buffer, offset);
+            offset += NetworkHelpers.CopyTo(this.SrcPort, buffer, offset);
+            offset += NetworkHelpers.CopyTo(this.DstPort, buffer, offset);
+            offset += NetworkHelpers.CopyTo(this.VerTag, buffer, offset);
+            offset += NetworkHelpers.CopyTo(this.Chksum, buffer, offset);
             return offset - start;
         }
 
@@ -50,13 +50,13 @@
         internal int FromArray(byte[] buffer, int offset)
         {
             int start = offset;
-            this.SourcePort = NetworkHelpers.ToUInt16(buffer, offset);
+            this.SrcPort = NetworkHelpers.ToUInt16(buffer, offset);
             offset += 2;
-            this.DestinationPort = NetworkHelpers.ToUInt16(buffer, offset);
+            this.DstPort = NetworkHelpers.ToUInt16(buffer, offset);
             offset += 2;
-            this.VerificationTag = NetworkHelpers.ToUInt32(buffer, offset);
+            this.VerTag = NetworkHelpers.ToUInt32(buffer, offset);
             offset += 4;
-            this.Checksum = NetworkHelpers.ToUInt32(buffer, offset);
+            this.Chksum = NetworkHelpers.ToUInt32(buffer, offset);
             offset += 4;
 
             return offset - start;

@@ -12,7 +12,6 @@ namespace SCTP
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-
     using SCTP.Chunks;
 
     /// <summary>
@@ -765,7 +764,7 @@ namespace SCTP
             }
 
             // No Verificaton Tag, MUST be an INIT packet...
-            if (packet.Header.VerificationTag == 0)
+            if (packet.Header.VerTag == 0)
             {
                 // Check that the packet contains ONLY an INIT chunk.
                 if (packet.Chunks.Count != 1 ||
@@ -787,14 +786,14 @@ namespace SCTP
             Chunk chunk = packet.Chunks.FirstOrDefault((c) => { return c.Type == ChunkType.Abort || c.Type == ChunkType.ShutdownComplete; });
             if (chunk != null)
             {
-                if (!((chunk.Flags & 1) == 1 && packet.Header.VerificationTag == this.tcb.LocalVerificationTag) &&
-                    !((chunk.Flags & 1) == 0 && packet.Header.VerificationTag == this.tcb.PeerVerificationTag))
+                if (!((chunk.Flags & 1) == 1 && packet.Header.VerTag == this.tcb.LocalVerificationTag) &&
+                    !((chunk.Flags & 1) == 0 && packet.Header.VerTag == this.tcb.PeerVerificationTag))
                 {
                     this.WriteConsole(string.Format("Discarding Invalid Packet - Incorrect {0} chunk verification tag", chunk.Type));
                     return false;
                 }
             }
-            else if (packet.Header.VerificationTag != this.tcb.LocalVerificationTag)
+            else if (packet.Header.VerTag != this.tcb.LocalVerificationTag)
             {
                 this.WriteConsole("Discarding Invalid Packet - TCB is null or packet contains incorrect verification tag");
                 return false;
@@ -846,7 +845,7 @@ namespace SCTP
                 }
                 else if (chunk.Type == ChunkType.ShutdownAck)
                 {
-                    this.ProcessShutdownAck(packet.Header.VerificationTag, (ShutdownChunk)chunk, packet.ReceivedFrom);
+                    this.ProcessShutdownAck(packet.Header.VerTag, (ShutdownChunk)chunk, packet.ReceivedFrom);
                 }
                 else if (chunk.Type == ChunkType.ShutdownComplete)
                 {

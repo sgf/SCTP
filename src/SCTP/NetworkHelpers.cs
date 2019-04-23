@@ -2,7 +2,7 @@
 {
     using System;
 
-    internal static class NetworkHelpers
+    public static class NetworkHelpers
     {
         /// <summary>
         /// Copies a <see cref="short"/> to a network buffer in network byte order.
