@@ -49,7 +49,7 @@
             this.Header = new CommonHeader();
             this.Chunks = new List<Chunk>(20);
         }
-
+        
         /// <summary>
         /// Gets the packet header.
         /// </summary>
