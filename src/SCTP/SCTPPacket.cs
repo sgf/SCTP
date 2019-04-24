@@ -1,6 +1,7 @@
 ﻿namespace SCTP
 {
     using System;
+    using System.Buffers;
     using System.Collections.Generic;
     using System.Linq;
     using System.Net;
@@ -156,6 +157,7 @@
         /// <returns>An array of bytes.</returns>
         public byte[] ToArray()
         {
+            //ArrayPool<byte>.Shared.Rent()
             byte[] buffer = new byte[this.Size];
             this.ToArray(buffer, 0);
             return buffer;
