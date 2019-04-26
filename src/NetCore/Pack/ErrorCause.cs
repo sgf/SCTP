@@ -53,27 +53,27 @@ namespace NetCore.Pack
 
 
         public static readonly ErrorCause
-            OutOfResource = new ErrorCause() { Head = ErrorHead.OutOfResource },
-            InvalidMandatoryParameter = new ErrorCause() { Head = ErrorHead.InvalidMandatoryParameter },
-            CookieReceivedWhileShuttingDown = new ErrorCause() { Head = ErrorHead.CookieReceivedWhileShuttingDown };
+            New_OutOfResource = new ErrorCause() { Head = ErrorHead.New_OutOfResource },
+            New_InvalidMandatoryParameter = new ErrorCause() { Head = ErrorHead.New_InvalidMandatoryParameter },
+            New_CookieReceivedWhileShuttingDown = new ErrorCause() { Head = ErrorHead.New_CookieReceivedWhileShuttingDown };
 
-        public static ErrorCause NoUserData(ref TSN tsn)
+        public static ErrorCause New_NoUserData(ref TSN tsn)
         {
             var error = new ErrorCause();
-            error.Head = ErrorHead.NoUserData;
+            error.Head = ErrorHead.New_NoUserData;
             error.Body = new Error_NoUserData { TSN = tsn };
             return error;
         }
 
-        public static ErrorCause StaleCookieError(uint measureOfStaleness)
+        public static ErrorCause New_StaleCookieError(uint measureOfStaleness)
         {
             var error = new ErrorCause();
-            error.Head = ErrorHead.StaleCookieError;
+            error.Head = ErrorHead.New_StaleCookieError;
             error.Body = new Error_StaleCookieError { MeasureOfStaleness = measureOfStaleness };
             return error;
         }
 
-        public static ErrorCause InvalidStreamIdentifier(ushort streamIdentifier)
+        public static ErrorCause New_InvalidStreamIdentifier(ushort streamIdentifier)
         {
             var error = new ErrorCause();
             error.Head = ErrorHead.InvalidStreamIdentifier;
@@ -83,7 +83,7 @@ namespace NetCore.Pack
         }
 
 
-        public static ErrorCause MissingMandatoryParameter(ushort[] listOfMissingParamType)
+        public static ErrorCause New_MissingMandatoryParameter(ushort[] listOfMissingParamType)
         {
             var len = (ushort)(8 + (uint)listOfMissingParamType.Length * 2);
             if (len > ushort.MaxValue) throw new Exception("超出ErrorCause.Length 的最大长度限制");
@@ -94,7 +94,7 @@ namespace NetCore.Pack
         }
 
 
-        public static ErrorCause UnresolvableAddress(List<(ushort completeType, int Length, string address)> address_List)
+        public static ErrorCause New_UnresolvableAddress(List<(ushort completeType, int Length, string address)> address_List)
         {
             var len =?;
             if (len > ushort.MaxValue) throw new Exception("超出ErrorCause.Length 的最大长度限制");
@@ -104,7 +104,7 @@ namespace NetCore.Pack
             return error;
         }
 
-        public static ErrorCause UnrecognizedChunkType(List<(ushort Type, int Flags, string Length)> chunk_List)
+        public static ErrorCause New_UnrecognizedChunkType(List<(ushort Type, int Flags, string Length)> chunk_List)
         {
             var len =?;
             if (len > ushort.MaxValue) throw new Exception("超出ErrorCause.Length 的最大长度限制");
@@ -114,7 +114,7 @@ namespace NetCore.Pack
             return error;
         }
 
-        public static ErrorCause UnrecognizedParameters(ushort[] listOfMissingParamType)
+        public static ErrorCause New_UnrecognizedParameters(ushort[] listOfMissingParamType)
         {
             var len =?;
             if (len > ushort.MaxValue) throw new Exception("超出ErrorCause.Length 的最大长度限制");
@@ -124,7 +124,7 @@ namespace NetCore.Pack
 
         }
 
-        public static ErrorCause CookieReceivedWhileShuttingDown(ushort[] listOfMissingParamType)
+        public static ErrorCause New_CookieReceivedWhileShuttingDown(ushort[] listOfMissingParamType)
         {
             var len =?;
             if (len > ushort.MaxValue) throw new Exception("超出ErrorCause.Length 的最大长度限制");
@@ -134,7 +134,7 @@ namespace NetCore.Pack
 
         }
 
-        public static ErrorCause RestartOfAnAssociationWithNewAddresses(ushort[] listOfMissingParamType)
+        public static ErrorCause New_RestartOfAnAssociationWithNewAddresses(ushort[] listOfMissingParamType)
         {
             var len =?;
             if (len > ushort.MaxValue) throw new Exception("超出ErrorCause.Length 的最大长度限制");
@@ -144,7 +144,7 @@ namespace NetCore.Pack
 
         }
 
-        public static ErrorCause UserInitiatedAbort(ushort[] listOfMissingParamType)
+        public static ErrorCause New_UserInitiatedAbort(ushort[] listOfMissingParamType)
         {
             var len =?;
             if (len > ushort.MaxValue) throw new Exception("超出ErrorCause.Length 的最大长度限制");
@@ -153,7 +153,7 @@ namespace NetCore.Pack
             error.Head = ErrorHead.New(CauseCode.UnrecognizedChunkType, len);
 
         }
-        public static ErrorCause ProtocolViolation(ushort[] listOfMissingParamType)
+        public static ErrorCause New_ProtocolViolation(ushort[] listOfMissingParamType)
         {
             var len =?;
             if (len > ushort.MaxValue) throw new Exception("超出ErrorCause.Length 的最大长度限制");
@@ -231,13 +231,13 @@ namespace NetCore.Pack
             ;
 
         public static readonly ErrorHead
-            OutOfResource = new ErrorHead() { Value = _OutOfResource },
-            NoUserData = new ErrorHead() { Value = _NoUserData },
-            StaleCookieError = new ErrorHead() { Value = _StaleCookieError },
-            InvalidMandatoryParameter = new ErrorHead() { Value = _InvalidMandatoryParameter },
-            CookieReceivedWhileShuttingDown = new ErrorHead() { Value = _CookieReceivedWhileShuttingDown },
-            InvalidStreamIdentifier = new ErrorHead() { Value = _InvalidStreamIdentifier };
-
+            New_OutOfResource = new ErrorHead() { Value = _OutOfResource },
+            New_NoUserData = new ErrorHead() { Value = _NoUserData },
+            New_StaleCookieError = new ErrorHead() { Value = _StaleCookieError },
+            New_InvalidMandatoryParameter = new ErrorHead() { Value = _InvalidMandatoryParameter },
+            New_CookieReceivedWhileShuttingDown = new ErrorHead() { Value = _CookieReceivedWhileShuttingDown },
+            New_InvalidStreamIdentifier = new ErrorHead() { Value = _InvalidStreamIdentifier };
+        
         public static ErrorHead New(CauseCode code, ushort length)
         {
             return new ErrorHead() { Code = code, Length = length };

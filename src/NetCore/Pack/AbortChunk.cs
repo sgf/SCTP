@@ -5,12 +5,15 @@ using System.Text;
 namespace NetCore.Pack
 {
 
-
-
-    struct AbortChunk : IChunk
+    class AbortChunk : IChunk
     {
         public Head_Chunk Head { get; set; }
 
+
+
+        public void SSS() {
+
+        }
 
     }
 }
