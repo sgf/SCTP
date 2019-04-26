@@ -9,11 +9,10 @@ namespace ConsoleApp1
         static void Main(string[] args)
         {
 
-
-            var memory = MemoryPool<byte>.Shared.Rent(30).Memory;
-            //memory.Write((ushort)12345);
-            var buffer = memory.ToArray();
-            NetworkHelpers.CopyTo((ushort)12345, buffer, 0);
+            //var memory = MemoryPool<byte>.Shared.Rent(30).Memory;
+            ////memory.Write((ushort)12345);
+            //var buffer = memory.ToArray();
+            //NetworkHelpers.CopyTo((ushort)12345, buffer, 0);
 
             Console.WriteLine(buffer);
 

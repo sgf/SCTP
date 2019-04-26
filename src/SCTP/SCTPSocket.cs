@@ -2,6 +2,7 @@
 
 namespace SCTP
 {
+    using SCTP.Chunks;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
@@ -12,7 +13,6 @@ namespace SCTP
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using SCTP.Chunks;
 
     /// <summary>
     /// Represents
@@ -33,12 +33,12 @@ namespace SCTP
         /// <summary>
         /// List of end points.
         /// </summary>
-        private List<SCTPEndPoint> endpoints;
+        private List<SCTP_EP> endpoints;
 
         /// <summary>
         /// The primary end point.
         /// </summary>
-        private SCTPEndPoint primaryEndpoint;
+        private SCTP_EP primaryEndpoint;
 
         /// <summary>
         /// The local port.
@@ -140,7 +140,7 @@ namespace SCTP
         /// </summary>
         public SCTPSocket(int port)
         {
-            this.endpoints = new List<SCTPEndPoint>();
+            this.endpoints = new List<SCTP_EP>();
             this.transmitQueue = new List<DataChunk>(100);
             this.transmittedQueue = new Dictionary<uint, DataChunk>(100);
             this.inboundQueue = new SortedList<uint, Chunk>(100);
@@ -209,7 +209,7 @@ namespace SCTP
         /// <param name="address"></param>
         public void Bind(IPAddress address)
         {
-            SCTPEndPoint ep = new SCTPEndPoint(this, new IPEndPoint(address, this.port));
+            SCTP_EP ep = new SCTP_EP(this, new IPEndPoint(address, this.port));
             this.endpoints.Add(ep);
 
             if (this.primaryEndpoint == null)
@@ -235,7 +235,7 @@ namespace SCTP
         /// <param name="endPoint">The end point</param>
         private void Unbind(IPEndPoint endPoint)
         {
-            SCTPEndPoint ep = this.endpoints.FirstOrDefault((sep) => { return sep.EndPoint == endPoint; });
+            SCTP_EP ep = this.endpoints.FirstOrDefault((sep) => { return sep.EndPoint == endPoint; });
             if (ep != null)
             {
                 this.endpoints.Remove(ep);
@@ -265,7 +265,7 @@ namespace SCTP
         /// <param name="endPoint">The end point.</param>
         public bool Connect(IPEndPoint endPoint)
         {
-            if (this.tcb!= null)
+            if (this.tcb != null)
             {
                 if (this.Connected == true)
                 {
@@ -291,8 +291,9 @@ namespace SCTP
                 string hostNameAddress = this.primaryEndpoint.EndPoint.Address.ToString();
 
                 SCTPPacket connectPacket = SCTPPacket.Create(
-                    Convert.ToUInt16(this.primaryEndpoint.EndPoint.Port),
-                    Convert.ToUInt16(endPoint.Port),
+                    (ushort)this.primaryEndpoint.EndPoint.Port
+                    ,
+                    (ushort)endPoint.Port,
                     0,
                     new InitChunk(false)
                     {
@@ -455,11 +456,10 @@ namespace SCTP
         private SCTPPacket CreatePacket(TCB tcb, uint? verificationTag, params Chunk[] chunks)
         {
             Utility.ThrowIfArgumentNull("tcb", tcb);
-
             return SCTPPacket.Create(
                 (ushort)tcb.SourceEndPoint.Port,
                 (ushort)tcb.DestinationEndPoint.Port,
-                verificationTag.HasValue == true ? verificationTag.Value : tcb.PeerVerificationTag,
+                verificationTag ?? tcb.PeerVerificationTag,
                 chunks);
         }
 
@@ -514,17 +514,17 @@ namespace SCTP
             return Task.FromResult(true);
         }
 
-        private void SendAbort(SCTPEndPoint endPoint, params ErrorCause[] causes)
+        private void SendAbort(SCTP_EP endPoint, params ErrorCause[] causes)
         {
             this.SendAbort(endPoint, null, null, causes);
         }
 
-        private void SendAbort(SCTPEndPoint endPoint, Chunk[] chunks, params ErrorCause[] causes)
+        private void SendAbort(SCTP_EP endPoint, Chunk[] chunks, params ErrorCause[] causes)
         {
             this.SendAbort(endPoint, null, chunks, causes);
         }
 
-        private void SendAbort(SCTPEndPoint endPoint, uint? vericationTag, params ErrorCause[] causes)
+        private void SendAbort(SCTP_EP endPoint, uint? vericationTag, params ErrorCause[] causes)
         {
             this.SendAbort(endPoint, vericationTag, null, causes);
         }
@@ -536,7 +536,7 @@ namespace SCTP
         /// <param name="verificationTag"></param>
         /// <param name="chunks">Any extra chunks to bundle with the abort.</param>
         /// <param name="causes">Error causes</param>
-        private void SendAbort(SCTPEndPoint endPoint, uint? verificationTag, Chunk[] chunks, params ErrorCause[] causes)
+        private void SendAbort(SCTP_EP endPoint, uint? verificationTag, Chunk[] chunks, params ErrorCause[] causes)
         {
             SCTPPacket packet = this.CreatePacket(verificationTag);
 
@@ -701,7 +701,7 @@ namespace SCTP
             this.WriteConsole(ConsoleColor.Yellow, $"Processing inbound packet");
 
             // Check if the packet is valid
-            if (this.IsPacketValid(packet) == false)
+            if (IsPacketValid(packet) == false)
             {
                 // If not then silently ignore...
                 return;
@@ -1129,9 +1129,9 @@ namespace SCTP
             {
                 var earliestOutstandingTSN = this.transmittedQueue.Values.FirstOrDefault(c => c.AckCount == 0)?.TSN;
 
-WriteConsole(ConsoleColor.Red, $"Earliest Outstanding TSN:  {earliestOutstandingTSN}");
-WriteConsole(ConsoleColor.Red, $"CumulativeTSNAck:          {ackChunk.CumulativeTSNAck}");
-WriteConsole(ConsoleColor.Red, $"Last Cumulative TSN Acked: {this.tcb.LastCumulativeTSNAcked}");
+                WriteConsole(ConsoleColor.Red, $"Earliest Outstanding TSN:  {earliestOutstandingTSN}");
+                WriteConsole(ConsoleColor.Red, $"CumulativeTSNAck:          {ackChunk.CumulativeTSNAck}");
+                WriteConsole(ConsoleColor.Red, $"Last Cumulative TSN Acked: {this.tcb.LastCumulativeTSNAcked}");
 
                 foreach (var chunk in this.transmittedQueue.Where(
                     kvp => kvp.Key <= ackChunk.CumulativeTSNAck &&
@@ -1365,7 +1365,7 @@ WriteConsole(ConsoleColor.Red, $"Last Cumulative TSN Acked: {this.tcb.LastCumula
             lock (this.transmitLock)
             {
                 List<uint> duplicateTSNList = new List<uint>(100);
-                foreach (var duplicateTSN  in this.duplicateTSNs.Keys)
+                foreach (var duplicateTSN in this.duplicateTSNs.Keys)
                 {
                     int value = 0;
                     bool updated = false;
@@ -1388,7 +1388,7 @@ WriteConsole(ConsoleColor.Red, $"Last Cumulative TSN Acked: {this.tcb.LastCumula
 
                 SelectiveAckChunk ackChunk = new SelectiveAckChunk()
                 {
-                    AdvertisedReceiverWindowCredit = (uint) this.tcb.ReceiveWindowSize,
+                    AdvertisedReceiverWindowCredit = (uint)this.tcb.ReceiveWindowSize,
                     CumulativeTSNAck = lastContiguousTSN,
                     DuplicateTSNs = duplicateTSNList
                 };

@@ -6,9 +6,9 @@
     using System.Threading;
 
     /// <summary>
-    /// Represents an SCTP end point.
+    /// Represents an SCTP EndPoint(端点)
     /// </summary>
-    public class SCTPEndPoint
+    public class SCTP_EP
         : IDisposable
     {
         /// <summary>
@@ -93,11 +93,11 @@
         private uint fastRecoveryTsn;
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="SCTPEndPoint"/> class.
+        /// Initialises a new instance of the <see cref="SCTP_EP"/> class.
         /// </summary>
         /// <param name="sctpSocket"></param>
         /// <param name="endPoint"></param>
-        internal SCTPEndPoint(SCTPSocket sctpSocket, IPEndPoint endPoint)
+        internal SCTP_EP(SCTPSocket sctpSocket, IPEndPoint endPoint)
         {
             this.sctpSocket = sctpSocket;
             this.EndPoint = endPoint;

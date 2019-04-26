@@ -1,11 +1,11 @@
 ﻿namespace SCTP
 {
+    using SCTP.Chunks;
     using System;
     using System.Buffers;
     using System.Collections.Generic;
     using System.Linq;
     using System.Net;
-    using SCTP.Chunks;
 
     /// <summary>
     /// Represent an <c>SCTP</c> packet.
@@ -50,7 +50,9 @@
             this.Header = new CommonHeader();
             this.Chunks = new List<Chunk>(20);
         }
-        
+
+        public CommonHeader Head;
+
         /// <summary>
         /// Gets the packet header.
         /// </summary>
