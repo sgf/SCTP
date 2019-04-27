@@ -76,7 +76,7 @@ namespace NetCore.Pack
         public static ErrorCause New_InvalidStreamIdentifier(ushort streamIdentifier)
         {
             var error = new ErrorCause();
-            error.Head = ErrorHead.InvalidStreamIdentifier;
+            error.Head = ErrorHead.New_InvalidStreamIdentifier;
             error.Body = new InvalidStreamIdentifier { StreamIdentifier = streamIdentifier };
             return error;
 
@@ -175,6 +175,15 @@ namespace NetCore.Pack
         public uint NumberOfMissingParams;
         public List<ushort> MissingParamType_List;
     }
+
+    class UnresolvableAddressPattern {
+        IPv4AddressParameter
+            IPv6AddressParameter
+            HostNameAddress
+    }
+
+
+
 
     class UnresolvableAddress : ICauseBody
     {

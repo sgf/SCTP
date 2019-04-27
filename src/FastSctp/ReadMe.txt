@@ -1,0 +1,1 @@
+﻿这个版本是 忽略 ErrorCause的。即ErrorCause 只是简单的实现。
