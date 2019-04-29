@@ -2,9 +2,43 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Buffers.Binary;
+using System.Buffers;
 
 namespace System
 {
+
+
+    public class AAA {
+
+        AAA()
+        {
+
+            BinaryPrimitives.read
+
+
+}
+
+
+    }
+
+
+    interface IPackRead
+    {
+        void Fetch();
+        void Read();
+    }
+
+
+    interface IPackWrite
+    {
+        void WriteHead();
+        void WriteBody();
+    }
+
+
+
+
     /// <summary>
     /// Binary IO
     /// </summary>
@@ -24,6 +58,7 @@ namespace System
 
         public unsafe static ref T Read<T>(this Span<byte> memory) where T : unmanaged
         {
+             //return ref MemoryMarshal.Read<T>(memory);
             var p = (T*)(memory.GetPinnableReference());
             //MemoryMarshal.GetReference(memory);
             //fixed(byte* t = memory)

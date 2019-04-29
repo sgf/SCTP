@@ -103,7 +103,7 @@ namespace NetCore.Pack
             var len =?;
             if (len > ushort.MaxValue) throw new Exception("超出ErrorCause.Length 的最大长度限制");
             var error = new ErrorCause();
-            error.Body = new UnrecognizedChunkType { Chunk_List = chunk_List };
+            error.Body = new RestartOfAnAssociationWithNewAddresses {   = chunk_List };
             error.Head = ErrorHead.New(CauseCode.RestartOfAnAssociationWithNewAddresses, len);
 
         }

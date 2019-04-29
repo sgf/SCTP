@@ -295,14 +295,15 @@ namespace NetCore.Pack
 
     class RestartOfAnAssociationWithNewAddresses
     {
-        ushort CauseCode = 11;
-        ushort CauseLength;
-        NewAddressTlv[] NewAddressTlvs;
+        public ushort CauseCode = 11;
+        public ushort CauseLength;
+        public NewAddressTlv[] NewAddressTlvs;
     }
 
-    interface NewAddressTlv {
+    interface NewAddressTlv
+    {
 
-    } 
+    }
 
     class UserInitiatedAbort
     {
