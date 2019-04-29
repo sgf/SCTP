@@ -10,7 +10,7 @@ namespace NetCore
     unsafe struct IPv4Address : IComparable
     {
         [FieldOffset(0)]
-        public int Octets;
+        public uint Octets;
         [FieldOffset(0)]
         public byte _0;
         [FieldOffset(1)]
