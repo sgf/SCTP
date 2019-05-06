@@ -10,6 +10,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Pack\int128.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="Pack\chunks\" />
   </ItemGroup>
 

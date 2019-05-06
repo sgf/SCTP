@@ -73,7 +73,6 @@ namespace NetCore.Pack
 
     }
 
-    [StructLayout(LayoutKind.Sequential, Size = 4)]
     struct Head_IOOVP
     {
         public static Head_IOOVP New_IPv4AddressParameter = new Head_IOOVP { Type = 5, Length = 8 },
@@ -87,15 +86,16 @@ namespace NetCore.Pack
         }
     }
 
-    [StructLayout(LayoutKind.Sequential, Size = 8)]
     struct IPv4AddressParameter : IUnresolvableAddress, InitOptionalOrVariableParameter, InitAckOptionalOrVariableParameter, NewAddressTlv
     {
         public Head_IOOVP Head;//Type=5 Length=8
         public IPv4Address IPv4Address;
 
+        public ushort Length => Head.Length;
+
         public static IPv4AddressParameter New(IPv4Address ipv4)
         {
-
+            return new IPv4AddressParameter { Head = new Head_IOOVP { Type = 5, Length = 8 }, IPv4Address = ipv4 };
         }
     }
 
@@ -104,6 +104,12 @@ namespace NetCore.Pack
     {
         public Head_IOOVP Head;//Type=6 Length=20
         public IPv6Address IPv6Address;
+
+        public ushort Length => Head.Length;
+        public static IPv6AddressParameter New(IPv6Address ipv6)
+        {
+            return new IPv6AddressParameter { Head = new Head_IOOVP { Type = 6, Length = 20 }, IPv6Address = ipv6 };
+        }
     }
 
     [StructLayout(LayoutKind.Sequential, Size = 8)]
@@ -155,19 +161,7 @@ namespace NetCore.Pack
         binary Value with BinaryEncoding { Length = Length - 4};
     }
 
-    /// <summary>
-    /// 无法识别的参数
-    /// Use In :when the sender of the COOKIE ECHO chunk wishes to report unrecognized parameters.
-    /// What:not recognize one or more Optional TLV parameters in the INIT ACK chunk.
-    /// </summary>
-    class UnrecognizedParameter : InitAckOptionalOrVariableParameter
-    {
-        ushort Type = 8;
-        ushort Length;
 
-        //not recognize one or more Optional TLV parameters in the INIT ACK chunk.
-        binary Value with BinaryEncoding { Length = Length - 4};
-    }
 
     class EcnParameter : InitOptionalOrVariableParameter, InitAckOptionalOrVariableParameter
     {
@@ -272,13 +266,7 @@ namespace NetCore.Pack
     {
 
     }
-
-    class UnrecognizedParameters
-    {
-        ushort CauseCode = 8;
-        ushort CauseLength;
-        array<UnrecognizedParameter> UnrecognizedParameters;
-    }
+    
 
     class NoUserData
     {
@@ -293,16 +281,10 @@ namespace NetCore.Pack
         ushort CauseLength = 4;
     }
 
-    class RestartOfAnAssociationWithNewAddresses
-    {
-        public ushort CauseCode = 11;
-        public ushort CauseLength;
-        public NewAddressTlv[] NewAddressTlvs;
-    }
 
     interface NewAddressTlv
     {
-
+        ushort Length { get; }
     }
 
     class UserInitiatedAbort

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NetCore.Pack;
+using System;
 using System.Collections.Generic;
 
 namespace SCTP
@@ -44,6 +45,18 @@ namespace SCTP
     public class Stream
     {
 
+
+    }
+
+
+    public static class CauseCodeEx
+    {
+
+
+        public unsafe static ErrorHead NewHead(this CauseCode code, int bodyLen)
+        {
+            return ErrorHead.New(code, (ushort)(sizeof(ErrorHead) + bodyLen));
+        }
 
     }
 

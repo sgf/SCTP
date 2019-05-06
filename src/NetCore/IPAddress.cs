@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -44,9 +45,9 @@ namespace NetCore
         }
 
     }
-    
+
     [StructLayout(LayoutKind.Explicit, Pack = 1)]
-    unsafe struct IPv6Address : IComparable
+    internal unsafe struct IPv6Address : IComparable
     {
         [FieldOffset(0)]
         public fixed byte Octets[16];
@@ -67,9 +68,16 @@ namespace NetCore
         [FieldOffset(7)]
         public ushort _7;
 
+        public ushort Length => 16;
+
         public override string ToString()
         {
             return $"{_0:X}:{_1:X}:{_2:X}:{_3:X}:{_4:X}:{_5:X}:{_6:X}:{_7:X}:";
+        }
+
+        public (bool ok, ref IPv6Address ipv6) TryPrase(string str) {
+
+
         }
 
         public unsafe int CompareTo(object other)
@@ -86,7 +94,6 @@ namespace NetCore
             }
             return 1;
         }
-
 
         public static bool IsIPv6Address(string address)
         {
@@ -125,7 +132,7 @@ namespace NetCore
             {
                 arr = address.Split(":");
                 if (arr.Length != 8) return false;
-                if (!arr.IsArrayItemWithinRange( 0, 65535, true)) return false;
+                if (!arr.IsArrayItemWithinRange(0, 65535, true)) return false;
             }
 
             return true;
@@ -147,14 +154,18 @@ namespace NetCore
     {
         public static int? ToInt(this string src, bool hexDigit)
         {
-#warning hexDigit 十六进制转换未实现
-            return int.TryParse(src, out int _rlt) ? _rlt : (int?)null;
+            if (hexDigit)
+                return int.TryParse("0x011", NumberStyles.AllowHexSpecifier | NumberStyles.HexNumber,
+                    CultureInfo.InvariantCulture, out int _rltFrom16) ? _rltFrom16 : (int?)null;
+
+            return int.TryParse(src, out int _rltFrom10) ? _rltFrom10 : (int?)null;
         }
 
         public static bool IsArrayItemWithinRange(this string[] arr, int start, int end, bool hexDigit)
         {
             foreach (var a in arr)
             {
+                if (a.Length == 0) return false;
                 var i = a.ToInt(hexDigit);
 
                 if (i == null) return false;
