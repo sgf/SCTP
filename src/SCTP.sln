@@ -13,7 +13,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetCore", "NetCore\NetCore.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FastSctp", "FastSctp\FastSctp.csproj", "{9A5C6A90-5220-46CF-8895-58554B9E1E7B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XTest_NetCore", "XTest_NetCore\XTest_NetCore.csproj", "{61797DEB-F9C1-425E-A117-37382D1634AD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "XTest_NetCore", "XTest_NetCore\XTest_NetCore.csproj", "{61797DEB-F9C1-425E-A117-37382D1634AD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

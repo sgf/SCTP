@@ -104,7 +104,7 @@ namespace NetCore.Pack
         public static ErrorCause New_RestartOfAnAssociationWithNewAddresses(ushort[] listOfMissingParamType)
         {
             var roaawna = new RestartOfAnAssociationWithNewAddresses();
-            return new ErrorCause(ErrorHead.New(CauseCode.RestartOfAnAssociationWithNewAddresses, (ushort)(roaawna.GetLength() + sizeof(ErrorHead))), roaawna);
+            return new ErrorCause(ErrorHead.New(CauseCode.RestartOfAnAssociationWithNewAddresses, (ushort)(roaawna.Length + sizeof(ErrorHead))), roaawna);
         }
 
         public static ErrorCause New_UserInitiatedAbort(ushort[] listOfMissingParamType)
@@ -145,12 +145,12 @@ namespace NetCore.Pack
             get
             {
 
-                var len = 0;
+                int len = 0;
                 foreach (var addr in NewAddressTlvs)
                 {
                     len = len + addr.Length;
                 }
-                return len;
+                return (ushort)len;
             }
         }
 
