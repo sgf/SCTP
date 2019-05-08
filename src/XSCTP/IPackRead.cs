@@ -2,12 +2,13 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace FastSctp.Pack
+namespace NetCore
 {
-    public class ErrorCause
+    interface IPackRead
     {
+        void Fetch();
 
 
-
+        void Read();
     }
 }
