@@ -11,8 +11,10 @@ using TSN = System.UInt32;//发送顺序号（TSN） SCTP 在将数据（数据�
 namespace NetCore.Pack
 {
 
+
     unsafe class ErrorCause
     {
+
         /// <summary>
         /// Head Only
         /// </summary>
@@ -45,24 +47,15 @@ namespace NetCore.Pack
         }
 
         public ErrorHead Head { get; private set; }
+
+
         public Memory<byte> BodyBuff;
         public ICauseBody Body { get; private set; }
 
 
-        public void ReadBody() {
-            switch (Head.Code)
-            {
-
-            }
-
-        }
-
-        public static ErrorCause FromBuff(Memory<byte> buff)
+        public void ReadBody(Memory<byte> buff)
         {
-            ref var head = ref buff.Read<ErrorHead>();
-            var error = new ErrorCause(head);
-            var _buff = buff.Slice(sizeof(ErrorHead));
-            switch (head.Code)
+            switch (Head.Code)
             {
                 case CauseCode.OutOfResource:
                 case CauseCode.InvalidMandatoryParameter:
@@ -70,17 +63,49 @@ namespace NetCore.Pack
                     //只有头没有别的因此 无须读取Body
                     break;
                 case CauseCode.NoUserData:
-                    error.Body = _buff.Read<Error_NoUserData>();
+                    Body = buff.Read<Error_NoUserData>();
                     break;
                 case CauseCode.StaleCookieError:
-                    error.Body = _buff.Read<Error_StaleCookieError>();
+                    Body = buff.Read<Error_StaleCookieError>();
                     break;
                 case CauseCode.InvalidStreamIdentifier:
-                    error.Body = _buff.Read<Error_InvalidStreamIdentifier>();
+                    Body = buff.Read<Error_InvalidStreamIdentifier>();
                     break;
+                case CauseCode.MissingMandatoryParameter:
+                    var body = new Error_MissingMandatoryParameter();
+                    body.NumberOfMissingParams = buff.Read<uint>();
+                    body.MissingParams = buff.Read<ushort>(body.NumberOfMissingParams).ToArray();
+                    Body = body;
+                    break;
+                case CauseCode.RestartOfAnAssociationWithNewAddresses:
+                    Body = RestartOfAnAssociationWithNewAddresses.Read(buff);
+                    break;
+                case CauseCode.ProtocolViolation:
+                    Body = buff.Read<Error_InvalidStreamIdentifier>();
+                    break;
+                case CauseCode.UnrecognizedChunkType:
+                    Body = buff.Read<Error_InvalidStreamIdentifier>();
+                    break;
+                case CauseCode.UnrecognizedParameters:
+                    Body = buff.Read<Error_InvalidStreamIdentifier>();
+                    break;
+                case CauseCode.UnresolvableAddress:
+                    Body = buff.Read<Error_InvalidStreamIdentifier>();
+                    break;
+                case CauseCode.UserInitiatedAbort:
+                    Body = buff.Read<Error_InvalidStreamIdentifier>();
+                    break;
+
                 default:
                     break;
             }
+        }
+
+        public static ErrorCause FromBuff(Memory<byte> buff)
+        {
+            ref var head = ref buff.Read<ErrorHead>();
+            var error = new ErrorCause(head);
+            var _buff = buff.Slice(sizeof(ErrorHead));
 
             return error;
         }
@@ -118,12 +143,10 @@ namespace NetCore.Pack
 
         public static ErrorCause New_UserInitiatedAbort(ushort[] listOfMissingParamType)
         {
-            var len =?;
-            if (len > ushort.MaxValue) throw new Exception("超出ErrorCause.Length 的最大长度限制");
-            var error = new ErrorCause();
-            error.Body = new UnrecognizedChunkType { Chunk_List = chunk_List };
-            error.Head = ErrorHead.New(CauseCode.UnrecognizedChunkType, len);
 
+
+            var uia = new UserInitiatedAbort() { UpperLayerAbortReason }
+            return new ErrorCause(ErrorHead.New(CauseCode.UserInitiatedAbort, len);)
         }
         public static ErrorCause New_ProtocolViolation(ushort[] listOfMissingParamType)
         {
@@ -131,7 +154,9 @@ namespace NetCore.Pack
             if (len > ushort.MaxValue) throw new Exception("超出ErrorCause.Length 的最大长度限制");
             var error = new ErrorCause();
             error.Body = new UnrecognizedChunkType { Chunk_List = chunk_List };
-            error.Head = ErrorHead.New(CauseCode.UnrecognizedChunkType, len);
+            error.Head = ;
+
+            return new ErrorCause(ErrorHead.New(CauseCode.ProtocolViolation, len), new ProtocolViolation() { AdditionalInformation = new byte[0] });
 
         }
     }
@@ -144,8 +169,37 @@ namespace NetCore.Pack
 
 
 
+    interface NewAddressTlv
+    {
+        Head_IOOVP Head { get; }
+        AddressType Type => Head.Type;
+        ushort Length => Head.Length;
+    }
 
-    class RestartOfAnAssociationWithNewAddresses : ICauseBody
+    class UserInitiatedAbort : ICauseBody
+    {
+        /// <summary>
+        /// 上层放弃的原因（SCTP RFC中指出由上层协议定义）
+        /// </summary>
+        public byte[] UpperLayerAbortReason;//binary UpperLayerAbortReason with BinaryEncoding { Length = CauseLength - 4};
+
+        public ushort Length => (ushort)UpperLayerAbortReason.Length;
+    }
+
+    /// <summary>
+    /// 协议非法/协议无效/违反协议
+    /// </summary>
+    class ProtocolViolation : ICauseBody
+    {
+        /// <summary>
+        /// 附加信息(可以提供违反了什么协议，或者协议哪些方面) An implementation MAY provide additional information specifying what kind of protocol violation has been detected.
+        /// </summary>
+        public byte[] AdditionalInformation;//binary AdditionalInformation with BinaryEncoding { Length = CauseLength - 4};
+
+        public ushort Length => (ushort)AdditionalInformation.Length;
+    }
+
+    struct RestartOfAnAssociationWithNewAddresses : ICauseBody
     {
         public NewAddressTlv[] NewAddressTlvs;
 
@@ -153,7 +207,6 @@ namespace NetCore.Pack
         {
             get
             {
-
                 int len = 0;
                 foreach (var addr in NewAddressTlvs)
                 {
@@ -162,6 +215,36 @@ namespace NetCore.Pack
                 return (ushort)len;
             }
         }
+
+        public static RestartOfAnAssociationWithNewAddresses Read(Memory<byte> buff)
+        {
+            List<NewAddressTlv> newAddressTlvs = new List<NewAddressTlv>();
+            RestartOfAnAssociationWithNewAddresses roaawna;
+            //roaawna.NewAddressTlvs = new NewAddressTlv[];
+            //roaawna.NewAddressTlvs
+            var pos = 0;
+            while (pos < buff.Length)
+            {
+                var head = buff.Read<Head_IOOVP>();
+                switch (head.Type)
+                {
+                    case AddressType.V4://IPv4Address
+                        newAddressTlvs.Add(new IPv4AddressParameter(buff.Read<IPv4Address>()));
+                        break;
+                    case AddressType.V6:
+                        newAddressTlvs.Add(new IPv6AddressParameter(buff.Read<IPv6Address>()));
+                        break;
+                    case AddressType.HostName:
+                        newAddressTlvs.Add(new HostNameAddressParameter(buff.Read_ASCII(head.Length)));
+                        break;
+                    default:
+                        throw new Exception("不支持的地址或域名");
+                }
+            }
+            roaawna.NewAddressTlvs = newAddressTlvs.ToArray();
+            return roaawna;
+        }
+
 
     }
 
@@ -177,9 +260,11 @@ namespace NetCore.Pack
         /// </summary>
 
         public byte[] value; //binary Value with BinaryEncoding { Length = Length - 4};
+
+        public ushort Length => (ushort)value.Length;
     }
 
-    class Error_MissingMandatoryParameter : ICauseBody
+    struct Error_MissingMandatoryParameter : ICauseBody
     {
         public uint NumberOfMissingParams;
         public ushort[] MissingParams;
@@ -206,7 +291,7 @@ namespace NetCore.Pack
                     case IPv6AddressParameter ipv6:
                         subLen = ipv6.Head.Length;
                         break;
-                    case HostNameAddress host:
+                    case HostNameAddressParameter host:
                         subLen = host.Head.Length;
                         break;
                     default:
@@ -221,10 +306,12 @@ namespace NetCore.Pack
     /// 未知的 Chunk 类型
     /// </summary>
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    struct UnrecognizedChunkType : ICauseBody
+    unsafe struct UnrecognizedChunkType : ICauseBody
     {
-        public Head_Chunk Chunk;
 #warning 这里Chunk 类型为 Head_Chunk 未必正确
+        public Head_Chunk Chunk;
+
+        public ushort Length => (ushort)sizeof(Head_Chunk);
     }
 
     /// <summary>
@@ -237,6 +324,8 @@ namespace NetCore.Pack
         public ushort StreamIdentifier;
         [FieldOffset(2)]
         public ushort Reserved;
+
+        public ushort Length => 4;
     }
 
     /// <summary>
@@ -251,6 +340,8 @@ namespace NetCore.Pack
         /// </summary>
         [FieldOffset(0)]
         public TSN TSN;
+
+        public ushort Length => 4;
     }
 
     [StructLayout(LayoutKind.Explicit, Pack = 2)]
@@ -258,6 +349,8 @@ namespace NetCore.Pack
     {
         [FieldOffset(0)]
         public uint MeasureOfStaleness;
+
+        public ushort Length => 4;
     }
 
     /// <summary>

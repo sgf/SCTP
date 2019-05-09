@@ -9,7 +9,8 @@ namespace System
 {
 
 
-    public class AAA {
+    public class AAA
+    {
 
         AAA()
         {
@@ -39,6 +40,9 @@ namespace System
 
 
 
+
+
+
     /// <summary>
     /// Binary IO
     /// </summary>
@@ -56,9 +60,25 @@ namespace System
             return ref *p;
         }
 
+        public unsafe static string Read_ASCII(this Memory<byte> memory, int length)
+        {
+            return ASCIIEncoding.ASCII.GetString(new ReadOnlySpan<byte>(memory.Pin().Pointer, length));
+        }
+
+        public unsafe static Span<T> Read<T>(this Memory<byte> memory, uint count) where T : unmanaged
+        {
+            var _m = memory;
+            var size = sizeof(T);
+            if (size * count >= _m.Length)
+                throw new Exception("offset out of the lenght (长度溢出)");
+            var _mp = _m.Pin();
+            //var _mp = _m.Slice(0, sizeof(T)).Pin();
+            return new Span<T>(_mp.Pointer, (int)(size * count));
+        }
+
         public unsafe static ref T Read<T>(this Span<byte> memory) where T : unmanaged
         {
-             //return ref MemoryMarshal.Read<T>(memory);
+            //return ref MemoryMarshal.Read<T>(memory);
             var p = (T*)(memory.GetPinnableReference());
             //MemoryMarshal.GetReference(memory);
             //fixed(byte* t = memory)
@@ -83,7 +103,7 @@ namespace System
         }
 
 
-        public unsafe static int Write<T>(this Span<byte> memory,ref T t) where T : unmanaged
+        public unsafe static int Write<T>(this Span<byte> memory, ref T t) where T : unmanaged
         {
             //ref memory.GetPinnableReference()
 

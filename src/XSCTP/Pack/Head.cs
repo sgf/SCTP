@@ -31,7 +31,6 @@ namespace NetCore.Pack
         }
         public Head_SCTP* Head;
 
-        public 
 
 
     }

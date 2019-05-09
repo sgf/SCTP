@@ -10,6 +10,11 @@
 
   <ItemGroup>
     <Folder Include="Pack\chunks\" />
+    <Folder Include="Infrastructure\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.IO.Pipelines" Version="4.5.3" />
   </ItemGroup>
 
 </Project>

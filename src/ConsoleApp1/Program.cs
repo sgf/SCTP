@@ -15,23 +15,26 @@ namespace ConsoleApp1
             //var buffer = memory.ToArray();
             //NetworkHelpers.CopyTo((ushort)12345, buffer, 0);
 
-            Convert.ToInt32("", 16);
+            //var num = Convert.ToInt32("23", 16);
+            //var sss = "Hello World!".AsSpan(0,20);
 
-           
+            //string s1 = "　的 ".Trim();
 
-
-            Console.WriteLine(num);
+            Console.WriteLine(s1.Length);
+            Console.WriteLine(sizeof(AAA));
 
             Console.WriteLine("Hello World!");
             Console.ReadLine();
         }
 
-
-        struct AAA
+        [StructLayout(LayoutKind.Explicit,Pack =2)]
+        ref struct AAA
         {
             const int AA = 132;
             public int A2 { get { return AA; } }
 
+            [FieldOffset(0)]
+            public  int A3;
         }
 
     }

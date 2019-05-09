@@ -75,41 +75,74 @@ namespace NetCore.Pack
 
     struct Head_IOOVP
     {
-        public static Head_IOOVP New_IPv4AddressParameter = new Head_IOOVP { Type = 5, Length = 8 },
-            New_IPv6AddressParameter = new Head_IOOVP { Type = 6, Length = 20 };
-        public ushort Type;
+        public static Head_IOOVP New_IPv4AddressParameter = new Head_IOOVP { Type = AddressType.V4, Length = 8 },
+            New_IPv6AddressParameter = new Head_IOOVP { Type = AddressType.V6, Length = 20 };
+        public AddressType Type;
         public ushort Length;
 
         public static Head_IOOVP New_HostNameAddress(ushort len)
         {
-            return new Head_IOOVP { Type = 11, Length = len };
+            return new Head_IOOVP { Type = AddressType.HostName, Length = len };
         }
+    }
+
+    public enum AddressType : ushort
+    {
+        V4 = 5,
+        V6 = 6,
+        HostName = 11
+
     }
 
     struct IPv4AddressParameter : IUnresolvableAddress, InitOptionalOrVariableParameter, InitAckOptionalOrVariableParameter, NewAddressTlv
     {
-        public Head_IOOVP Head;//Type=5 Length=8
-        public IPv4Address IPv4Address;
+        private static Head_IOOVP _head = new Head_IOOVP { Type = AddressType.V4, Length = 8 };
 
-        public ushort Length => Head.Length;
+        public IPv4AddressParameter(IPv4Address ipv4)
+        {
+            Head = _head;
+            IPv4Address = ipv4;
+        }
+
+        public Head_IOOVP Head { get; }
+        public IPv4Address IPv4Address;
 
         public static IPv4AddressParameter New(IPv4Address ipv4)
         {
-            return new IPv4AddressParameter { Head = new Head_IOOVP { Type = 5, Length = 8 }, IPv4Address = ipv4 };
+            return new IPv4AddressParameter(ipv4);
         }
     }
 
-    [StructLayout(LayoutKind.Sequential, Size = 20)]
     struct IPv6AddressParameter : IUnresolvableAddress, InitOptionalOrVariableParameter, InitAckOptionalOrVariableParameter, NewAddressTlv
     {
-        public Head_IOOVP Head;//Type=6 Length=20
+        private static Head_IOOVP _head = new Head_IOOVP { Type = AddressType.V6, Length = 20 };
+
+        public IPv6AddressParameter(IPv6Address ipv6)
+        {
+            Head = _head;
+            IPv6Address = ipv6;
+        }
+
+        public Head_IOOVP Head { get; }
         public IPv6Address IPv6Address;
 
-        public ushort Length => Head.Length;
         public static IPv6AddressParameter New(IPv6Address ipv6)
         {
-            return new IPv6AddressParameter { Head = new Head_IOOVP { Type = 6, Length = 20 }, IPv6Address = ipv6 };
+            return new IPv6AddressParameter(ipv6);
         }
+    }
+
+    struct HostNameAddressParameter : IUnresolvableAddress, InitOptionalOrVariableParameter, InitAckOptionalOrVariableParameter, NewAddressTlv
+    {
+        public HostNameAddressParameter(string hostName)
+        {
+            HostName = hostName;
+            HostNameData = ASCIIEncoding.ASCII.GetBytes(hostName);
+            Head = new Head_IOOVP() { Type = AddressType.HostName, Length = (ushort)HostNameData.Length };
+        }
+        public Head_IOOVP Head { get; }
+        public string HostName;// HostName with BinaryEncoding { Length = Length - 4,TextEncoding = TextEncoding.ASCII };
+        public byte[] HostNameData;
     }
 
     [StructLayout(LayoutKind.Sequential, Size = 8)]
@@ -119,19 +152,12 @@ namespace NetCore.Pack
         public uint SuggestedCookieLifeSpanIncrement;
     }
 
-    class HostNameAddress : IUnresolvableAddress, InitOptionalOrVariableParameter, InitAckOptionalOrVariableParameter
-    {
-        public Head_IOOVP Head;//Type=11 Length=?
-        string HostName with BinaryEncoding { Length = Length - 4,TextEncoding = TextEncoding.ASCII };
-    }
-
 
     class SupportedAddressTypes : InitOptionalOrVariableParameter
     {
-        ushort Type = 12;
-        ushort Length;
-        array<ushort> AddressTypes with BinaryEncoding { Length = ((Length - 4) / 2)};
-
+        public Head_IOOVP Head { get; }//Type=12 Length=?
+        ushort[] AddressTypes;// array<ushort> AddressTypes with BinaryEncoding { Length = ((Length - 4) / 2)};
+    }
 
 
     class InitiationAcknowledgement // 2
@@ -266,7 +292,7 @@ namespace NetCore.Pack
     {
 
     }
-    
+
 
     class NoUserData
     {
@@ -282,31 +308,12 @@ namespace NetCore.Pack
     }
 
 
-    interface NewAddressTlv
-    {
-        ushort Length { get; }
-    }
-
-    class UserInitiatedAbort
-    {
-        ushort CauseCode = 12;
-        ushort CauseLength;
-        binary UpperLayerAbortReason with BinaryEncoding { Length = CauseLength - 4};
-    }
-
-    class ProtocolViolation
-    {
-        ushort CauseCode = 13;
-        ushort CauseLength;
-        binary AdditionalInformation with BinaryEncoding { Length = CauseLength - 4};
-    }
-
     class CookieEcho // 10
     {
         byte Type = 10;
         byte ChunkFlags;
         ushort Length;
-        binary Cookie with BinaryEncoding { Length = Length - 4};
+        byte[] Cookie;//binary Cookie with BinaryEncoding { Length = Length - 4};
     }
 
     class CookieAcknowledgement // 11
