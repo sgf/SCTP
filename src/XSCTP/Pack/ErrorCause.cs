@@ -72,28 +72,28 @@ namespace NetCore.Pack
                     Body = buff.Read<Error_InvalidStreamIdentifier>();
                     break;
                 case CauseCode.MissingMandatoryParameter:
-                    var body = new Error_MissingMandatoryParameter();
-                    body.NumberOfMissingParams = buff.Read<uint>();
-                    body.MissingParams = buff.Read<ushort>(body.NumberOfMissingParams).ToArray();
-                    Body = body;
+                    var numberOfMissingParams = buff.Read<uint>();
+                    var missingParams = buff.Read<ushort>(numberOfMissingParams).ToArray();
+                    Body = new Error_MissingMandatoryParameter(numberOfMissingParams, missingParams);
                     break;
                 case CauseCode.RestartOfAnAssociationWithNewAddresses:
                     Body = RestartOfAnAssociationWithNewAddresses.Read(buff);
                     break;
                 case CauseCode.ProtocolViolation:
-                    Body = buff.Read<Error_InvalidStreamIdentifier>();
+                    Body = new ProtocolViolation(buff.Read<byte>(Head.Length).ToArray());
                     break;
                 case CauseCode.UnrecognizedChunkType:
-                    Body = buff.Read<Error_InvalidStreamIdentifier>();
+                    Body = buff.Read<UnrecognizedChunkType>();
                     break;
                 case CauseCode.UnrecognizedParameters:
-                    Body = buff.Read<Error_InvalidStreamIdentifier>();
+                    var unrecognizedParameters = buff.Read<byte>((uint)(Head.Length - sizeof(ErrorHead))).ToArray();
+                    Body = new UnrecognizedParameters(unrecognizedParameters);
                     break;
                 case CauseCode.UnresolvableAddress:
-                    Body = buff.Read<Error_InvalidStreamIdentifier>();
+                    Body = buff.Read<UnresolvableAddress>();
                     break;
                 case CauseCode.UserInitiatedAbort:
-                    Body = buff.Read<Error_InvalidStreamIdentifier>();
+                    Body = buff.Read<UserInitiatedAbort>();
                     break;
 
                 default:
@@ -131,7 +131,7 @@ namespace NetCore.Pack
 
         public static ErrorCause New_UnrecognizedParameters(byte[] val)
         {
-            var up = new UnrecognizedParameter() { value = val };
+            var up = new UnrecognizedParameters() { value = val };
             return new ErrorCause(ErrorHead.New(CauseCode.UnrecognizedChunkType, (ushort)(up.value.Length + sizeof(ErrorHead))), up);
         }
 
@@ -165,6 +165,7 @@ namespace NetCore.Pack
     interface ICauseBody
     {
         ushort Length { get; }
+
     }
 
 
@@ -189,14 +190,20 @@ namespace NetCore.Pack
     /// <summary>
     /// 协议非法/协议无效/违反协议
     /// </summary>
-    class ProtocolViolation : ICauseBody
+    struct ProtocolViolation : ICauseBody
     {
+        public ProtocolViolation(byte[] additionalInfo)
+        {
+            AdditionalInformation = additionalInfo;
+        }
+
         /// <summary>
         /// 附加信息(可以提供违反了什么协议，或者协议哪些方面) An implementation MAY provide additional information specifying what kind of protocol violation has been detected.
         /// </summary>
         public byte[] AdditionalInformation;//binary AdditionalInformation with BinaryEncoding { Length = CauseLength - 4};
 
         public ushort Length => (ushort)AdditionalInformation.Length;
+
     }
 
     struct RestartOfAnAssociationWithNewAddresses : ICauseBody
@@ -253,8 +260,14 @@ namespace NetCore.Pack
     /// Use In :when the sender of the COOKIE ECHO chunk wishes to report unrecognized parameters.
     /// What:not recognize one or more Optional TLV parameters in the INIT ACK chunk.
     /// </summary>
-    class UnrecognizedParameter : InitAckOptionalOrVariableParameter, ICauseBody
+    class UnrecognizedParameters : InitAckOptionalOrVariableParameter, ICauseBody
     {
+
+        public UnrecognizedParameters(byte[] _uparms)
+        {
+            value = _uparms;
+        }
+
         /// <summary>
         /// not recognize [one or more Optional TLV parameters] in the INIT ACK chunk.
         /// </summary>
@@ -266,9 +279,15 @@ namespace NetCore.Pack
 
     struct Error_MissingMandatoryParameter : ICauseBody
     {
+        public Error_MissingMandatoryParameter(uint numberOfMissingParams, ushort[] missingParams)
+        {
+            NumberOfMissingParams = numberOfMissingParams;
+            MissingParams = missingParams;
+        }
+
         public uint NumberOfMissingParams;
         public ushort[] MissingParams;
-        public ushort Length => (ushort)(4 + MissingParams.Length * 2);
+        public ushort Length => (ushort)(4 + MissingParams.Length * sizeof(ushort));
     }
 
     /// <summary>
@@ -276,8 +295,9 @@ namespace NetCore.Pack
     /// </summary>
     class UnresolvableAddress : ICauseBody
     {
-        public IUnresolvableAddress Address;
+        public UnresolvableAddress()
 
+        public IUnresolvableAddress Address;
         public ushort Length
         {
             get
@@ -308,6 +328,10 @@ namespace NetCore.Pack
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     unsafe struct UnrecognizedChunkType : ICauseBody
     {
+        public UnrecognizedChunkType(Head_Chunk chunk)
+        {
+            Chunk = chunk;
+        }
 #warning 这里Chunk 类型为 Head_Chunk 未必正确
         public Head_Chunk Chunk;
 
@@ -320,6 +344,12 @@ namespace NetCore.Pack
     [StructLayout(LayoutKind.Explicit, Pack = 2)]
     struct Error_InvalidStreamIdentifier : ICauseBody
     {
+        public Error_InvalidStreamIdentifier(ushort streamIdentifier, ushort reserved)
+        {
+            StreamIdentifier = streamIdentifier;
+            Reserved = reserved;
+        }
+
         [FieldOffset(0)]
         public ushort StreamIdentifier;
         [FieldOffset(2)]
@@ -334,6 +364,11 @@ namespace NetCore.Pack
     [StructLayout(LayoutKind.Explicit, Pack = 2)]
     struct Error_NoUserData : ICauseBody
     {
+        public Error_NoUserData(TSN tsn)
+        {
+            TSN = tsn;
+        }
+
         /// <summary>
         /// The TSN value field contains the TSN of the DATA chunk received with no user data field.
         /// TSN值字段包含 在没有收到用户数据的情况下接收的DATA块的TSN。
