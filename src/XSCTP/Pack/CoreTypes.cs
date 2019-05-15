@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace NetCore.Pack
+namespace XSCTP
 {
 
     //MAC - Message Authentication Code[RFC2104]
@@ -19,42 +19,54 @@ namespace NetCore.Pack
 
 
 
+    interface IChunkValue {
+    //    pattern ChunkValue = PayloadData | // 0
+    //Initiation | // 1
+    //InitiationAcknowledgement | // 2
+    //SelectiveAcknowledgement | // 3
+    //HeartbeatRequest | // 4
+    //HeartbeatAcknowledgement | // 5
+    //AbortAssociation | // 6
+    //ShutdownAssociation | // 7
+    //ShutdownAcknowledgement | // 8
+    //OperationError | // 9
+    //CookieEcho | // 10
+    //CookieAcknowledgement | // 11
+    //EcnEcho | // 12
+    //Cwr | // 13
+    //ShutdownComplete;              // 14
+    }
 
-    pattern ChunkValue = PayloadData | // 0
-        Initiation | // 1
-        InitiationAcknowledgement | // 2
-        SelectiveAcknowledgement | // 3
-        HeartbeatRequest | // 4
-        HeartbeatAcknowledgement | // 5
-        AbortAssociation | // 6
-        ShutdownAssociation | // 7
-        ShutdownAcknowledgement | // 8
-        OperationError | // 9
-        CookieEcho | // 10
-        CookieAcknowledgement | // 11
-        EcnEcho | // 12
-        Cwr | // 13
-        ShutdownComplete;              // 14
+
+
 
     /********************************************** Chunk Types **********************************************/
     class PayloadData // 0
     {
-        byte Type where value == 0;
-        byte Reserved with BinaryEncoding { Width = 5};
-        byte U with BinaryEncoding { Width = 1};
-        byte B with BinaryEncoding { Width = 1};
-        byte E with BinaryEncoding { Width = 1};
+        public byte Type { get; set; }//byte Type where value == 0;
+
+        public byte Reserved { get; set; }//byte Reserved with BinaryEncoding { Width = 5};
+
+        public byte U { get; set; } //byte U with BinaryEncoding { Width = 1};
+
+        public byte B { get; set; } //  byte B with BinaryEncoding { Width = 1};
+
+        public byte E { get; set; } //   byte E with BinaryEncoding { Width = 1};
+
         ushort Length;
         uint TSN;
         ushort StreamIdentifier;
         ushort StreamSequenceNumber;
         uint PayloadProtocolIdentifier;
-        binary UserData with BinaryEncoding { Length = Length - 16};
+
+        byte[] UserData { get; set; }// binary UserData with BinaryEncoding { Length = Length - 16};
+
     }
 
     class Initiation // 1
     {
-        byte Type where value == 1;
+
+        byte Type;  // byte Type where value == 1;
         byte ChunkFlags;
         ushort ChunkLength;
         uint InitiateTag;
@@ -63,7 +75,9 @@ namespace NetCore.Pack
         ushort NumberofInboundStreams;
         uint InitialTSN;
         optional[| ChunkLength > 20 |]
-        array<InitOptionalOrVariableParameter> OptionalOrVariableParameters;
+        //array<InitOptionalOrVariableParameter> OptionalOrVariableParameters;
+
+        public InitOptionalOrVariableParameter[] OptionalOrVariableParameters;
     }
 
 
@@ -73,16 +87,17 @@ namespace NetCore.Pack
 
     }
 
-    struct Head_IOOVP
+
+    struct AddressHead
     {
-        public static Head_IOOVP New_IPv4AddressParameter = new Head_IOOVP { Type = AddressType.V4, Length = 8 },
-            New_IPv6AddressParameter = new Head_IOOVP { Type = AddressType.V6, Length = 20 };
+        public static AddressHead New_IPv4AddressParameter = new AddressHead { Type = AddressType.V4, Length = 8 },
+            New_IPv6AddressParameter = new AddressHead { Type = AddressType.V6, Length = 20 };
         public AddressType Type;
         public ushort Length;
 
-        public static Head_IOOVP New_HostNameAddress(ushort len)
+        public static AddressHead New_HostNameAddress(ushort len)
         {
-            return new Head_IOOVP { Type = AddressType.HostName, Length = len };
+            return new AddressHead { Type = AddressType.HostName, Length = len };
         }
     }
 
@@ -91,12 +106,11 @@ namespace NetCore.Pack
         V4 = 5,
         V6 = 6,
         HostName = 11
-
     }
 
     struct IPv4AddressParameter : IUnresolvableAddress, InitOptionalOrVariableParameter, InitAckOptionalOrVariableParameter, NewAddressTlv
     {
-        private static Head_IOOVP _head = new Head_IOOVP { Type = AddressType.V4, Length = 8 };
+        private static AddressHead _head = new AddressHead { Type = AddressType.V4, Length = 8 };
 
         public IPv4AddressParameter(IPv4Address ipv4)
         {
@@ -104,7 +118,7 @@ namespace NetCore.Pack
             IPv4Address = ipv4;
         }
 
-        public Head_IOOVP Head { get; }
+        public AddressHead Head { get; }
         public IPv4Address IPv4Address;
 
         public static IPv4AddressParameter New(IPv4Address ipv4)
@@ -115,7 +129,7 @@ namespace NetCore.Pack
 
     struct IPv6AddressParameter : IUnresolvableAddress, InitOptionalOrVariableParameter, InitAckOptionalOrVariableParameter, NewAddressTlv
     {
-        private static Head_IOOVP _head = new Head_IOOVP { Type = AddressType.V6, Length = 20 };
+        private static AddressHead _head = new AddressHead { Type = AddressType.V6, Length = 20 };
 
         public IPv6AddressParameter(IPv6Address ipv6)
         {
@@ -123,7 +137,7 @@ namespace NetCore.Pack
             IPv6Address = ipv6;
         }
 
-        public Head_IOOVP Head { get; }
+        public AddressHead Head { get; }
         public IPv6Address IPv6Address;
 
         public static IPv6AddressParameter New(IPv6Address ipv6)
@@ -138,9 +152,9 @@ namespace NetCore.Pack
         {
             HostName = hostName;
             HostNameData = ASCIIEncoding.ASCII.GetBytes(hostName);
-            Head = new Head_IOOVP() { Type = AddressType.HostName, Length = (ushort)HostNameData.Length };
+            Head = new AddressHead() { Type = AddressType.HostName, Length = (ushort)HostNameData.Length };
         }
-        public Head_IOOVP Head { get; }
+        public AddressHead Head { get; }
         public string HostName;// HostName with BinaryEncoding { Length = Length - 4,TextEncoding = TextEncoding.ASCII };
         public byte[] HostNameData;
     }
@@ -148,14 +162,14 @@ namespace NetCore.Pack
     [StructLayout(LayoutKind.Sequential, Size = 8)]
     struct CookiePreservative : InitOptionalOrVariableParameter
     {
-        public Head_IOOVP Head;//Type=9 Length=8
+        public AddressHead Head;//Type=9 Length=8
         public uint SuggestedCookieLifeSpanIncrement;
     }
 
 
     class SupportedAddressTypes : InitOptionalOrVariableParameter
     {
-        public Head_IOOVP Head { get; }//Type=12 Length=?
+        public AddressHead Head { get; }//Type=12 Length=?
         ushort[] AddressTypes;// array<ushort> AddressTypes with BinaryEncoding { Length = ((Length - 4) / 2)};
     }
 
@@ -267,32 +281,48 @@ namespace NetCore.Pack
         byte Type = 9;
         byte ChunkFlags;
         ushort Length;
-        array<CauseOfError> ErrorCauses;
+        CauseOfError[] ErrorCauses;
+        //array<CauseOfError> ErrorCauses;
     }
 
-    pattern CauseOfError = InvalidStreamIdentifier | // 1
-        MissingMandatoryParameter | // 2
-        StaleCookieError | // 3
-        OutOfResource | // 4
-        UnresolvableAddress | // 5
-        UnrecognizedChunkType | // 6
-        InvalidMandatoryParameter | // 7
-        UnrecognizedParameters | // 8
-        NoUserData | // 9
-        CookieReceivedWhileShuttingDown | // 10
-        RestartOfAnAssociationWithNewAddresses | // 11
-        UserInitiatedAbort | // 12
-        ProtocolViolation;                           // 13
+
+    interface CauseOfError {
+
+        //pattern CauseOfError = InvalidStreamIdentifier | // 1
+        //    MissingMandatoryParameter | // 2
+        //    StaleCookieError | // 3
+        //    OutOfResource | // 4
+        //    UnresolvableAddress | // 5
+        //    UnrecognizedChunkType | // 6
+        //    InvalidMandatoryParameter | // 7
+        //    UnrecognizedParameters | // 8
+        //    NoUserData | // 9
+        //    CookieReceivedWhileShuttingDown | // 10
+        //    RestartOfAnAssociationWithNewAddresses | // 11
+        //    UserInitiatedAbort | // 12
+        //    ProtocolViolation;                           // 13
+    }
 
 
 
 
 
-    interface IUnresolvableAddress
+    interface IAddress
+    {
+        AddressHead Head { get; }
+        AddressType Type { get { return Head.Type; } }
+        ushort Length { get { return Head.Length; } }
+        ref AddressHead ReadHead(Memory<byte> buff)
+        {
+            return ref buff.Read<AddressHead>();
+        }
+    }
+
+    interface IUnresolvableAddress : IAddress
     {
 
-    }
 
+    }
 
     class NoUserData
     {

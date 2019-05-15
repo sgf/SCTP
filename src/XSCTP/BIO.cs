@@ -50,6 +50,8 @@ namespace System
     {
         public unsafe static ref T Read<T>(this Memory<byte> memory) where T : unmanaged
         {
+            memory.Slice()
+
             var _m = memory;
             var size = sizeof(T);
             if (size >= _m.Length)

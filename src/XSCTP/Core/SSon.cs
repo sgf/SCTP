@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO.Pipelines;
 using System.Text;
 
-namespace XSCTP.Core
+namespace XSCTP
 {
     struct SSon
     {

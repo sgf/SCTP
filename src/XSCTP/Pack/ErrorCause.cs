@@ -8,7 +8,7 @@ using System.Text;
 using SSN = System.UInt32;//流顺序号 TSN 和SSN（流顺序号）是相互独立的，TSN 用于保证传输的可靠性，SSN 用于保证流内消息的顺序传递。
 using TSN = System.UInt32;//发送顺序号（TSN） SCTP 在将数据（数据分片或未分片的用户数据报）发送给底层之前顺序地为 之分配一个发送顺序号（TSN）。
 
-namespace NetCore.Pack
+namespace XSCTP
 {
 
 
@@ -90,7 +90,9 @@ namespace NetCore.Pack
                     Body = new UnrecognizedParameters(unrecognizedParameters);
                     break;
                 case CauseCode.UnresolvableAddress:
+                    IUnresolvableAddress
                     Body = buff.Read<UnresolvableAddress>();
+                    UnresolvableAddress unresolvableAddress = new UnresolvableAddress();
                     break;
                 case CauseCode.UserInitiatedAbort:
                     Body = buff.Read<UserInitiatedAbort>();
@@ -172,7 +174,7 @@ namespace NetCore.Pack
 
     interface NewAddressTlv
     {
-        Head_IOOVP Head { get; }
+        AddressHead Head { get; }
         AddressType Type => Head.Type;
         ushort Length => Head.Length;
     }
@@ -232,7 +234,7 @@ namespace NetCore.Pack
             var pos = 0;
             while (pos < buff.Length)
             {
-                var head = buff.Read<Head_IOOVP>();
+                var head = buff.Read<AddressHead>();
                 switch (head.Type)
                 {
                     case AddressType.V4://IPv4Address
@@ -295,31 +297,27 @@ namespace NetCore.Pack
     /// </summary>
     class UnresolvableAddress : ICauseBody
     {
-        public UnresolvableAddress()
-
-        public IUnresolvableAddress Address;
-        public ushort Length
+        public UnresolvableAddress(IUnresolvableAddress address)
         {
-            get
+            Address = address;
+            switch (address)
             {
-                ushort subLen = 0;
-                switch (Address)
-                {
-                    case IPv4AddressParameter ipv4:
-                        subLen = ipv4.Head.Length;
-                        break;
-                    case IPv6AddressParameter ipv6:
-                        subLen = ipv6.Head.Length;
-                        break;
-                    case HostNameAddressParameter host:
-                        subLen = host.Head.Length;
-                        break;
-                    default:
-                        throw new Exception("参数错误");
-                }
-                return subLen;
+                case IPv4AddressParameter ipv4:
+                    Length = ipv4.Head.Length;
+                    break;
+                case IPv6AddressParameter ipv6:
+                    Length = ipv6.Head.Length;
+                    break;
+                case HostNameAddressParameter host:
+                    Length = host.Head.Length;
+                    break;
+                default:
+                    throw new Exception("参数错误");
             }
         }
+
+        public IUnresolvableAddress Address;
+        public ushort Length { get; }
     }
 
     /// <summary>

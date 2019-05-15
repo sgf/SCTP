@@ -21,6 +21,24 @@ namespace XSCTP
             return new ValueTask<bool>(true);
         }
 
+        /// <summary>
+        /// 发送数据
+        /// </summary>
+        /// <param name="pack"></param>
+        /// <returns></returns>
+        public Task Send(Memory<byte> pack) {
+
+        }
+
+        private void OnData() {
+
+        }
+
+
+        public void OnMsg(Memory<byte> pack) {
+
+        }
+
 
     }
 }

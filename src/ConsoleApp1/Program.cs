@@ -2,6 +2,7 @@
 using System.Buffers;
 using System.Globalization;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 namespace ConsoleApp1
 {
@@ -19,22 +20,32 @@ namespace ConsoleApp1
             //var sss = "Hello World!".AsSpan(0,20);
 
             //string s1 = "　的 ".Trim();
+            
 
-            Console.WriteLine(s1.Length);
+            var mx = new Mutex(true, "11111");
+            Console.WriteLine("正在等待 the mutex");
+            //申请
+            if (mx.WaitOne(50, true)) Console.WriteLine("申请到 the mutex");
+            else Console.WriteLine("未申请到 the mutex");
+            Console.ReadLine();
+            mx.Close();
+
+            //Console.WriteLine(s1.Length);
             Console.WriteLine(sizeof(AAA));
 
             Console.WriteLine("Hello World!");
             Console.ReadLine();
         }
 
-        [StructLayout(LayoutKind.Explicit,Pack =2)]
+        [StructLayout(LayoutKind.Explicit, Pack = 2)]
         ref struct AAA
         {
             const int AA = 132;
             public int A2 { get { return AA; } }
 
+
             [FieldOffset(0)]
-            public  int A3;
+            public int A3;
         }
 
     }
