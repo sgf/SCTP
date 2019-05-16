@@ -5,10 +5,14 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace NetCore
+namespace XSCTP
 {
+
+
+
+
     [StructLayout(LayoutKind.Explicit, Pack = 1)]
-    unsafe struct IPv4Address : IComparable
+    unsafe struct IP4Address : IComparable
     {
         [FieldOffset(0)]
         public uint Octets;
@@ -29,7 +33,7 @@ namespace NetCore
         public int CompareTo(object other)
         {
             if (other != null &&
-                other is IPv4Address ipv4)
+                other is IP4Address ipv4)
             {
                 return (this.Octets > ipv4.Octets ? 1 : (this.Octets == ipv4.Octets ? 0 : -1));
             }
@@ -47,8 +51,10 @@ namespace NetCore
     }
 
     [StructLayout(LayoutKind.Explicit, Pack = 1)]
-    internal unsafe struct IPv6Address : IComparable
+    internal unsafe struct IP6Address : IComparable
     {
+        [FieldOffset(0)]
+        public Int128 Value;
         [FieldOffset(0)]
         public fixed byte Octets[16];
         [FieldOffset(0)]
@@ -75,15 +81,14 @@ namespace NetCore
             return $"{_0:X}:{_1:X}:{_2:X}:{_3:X}:{_4:X}:{_5:X}:{_6:X}:{_7:X}:";
         }
 
-        public (bool ok, ref IPv6Address ipv6) TryPrase(string str) {
+        //public (bool ok, ref IPv6Address ipv6) TryPrase(string str) {
 
-
-        }
+        //}
 
         public unsafe int CompareTo(object other)
         {
             if (other != null &&
-                other is IPv6Address ipv6)
+                other is IP6Address ipv6)
             {
                 var _ipv6 = new BigInteger(new ReadOnlySpan<byte>(ipv6.Octets, 16));
                 fixed (void* b = Octets)
@@ -139,9 +144,9 @@ namespace NetCore
         }
     }
 
-    static class IPv4AddressEx
+    static class IP4AddressEx
     {
-        static int IPv4ToInt(this IPv4Address address)
+        static int IPv4ToInt(this IP4Address address)
         {
             return (address._3 << 24) +
                 (address._2 << 16) +

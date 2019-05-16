@@ -238,10 +238,10 @@ namespace XSCTP
                 switch (head.Type)
                 {
                     case AddressType.V4://IPv4Address
-                        newAddressTlvs.Add(new IPv4AddressParameter(buff.Read<IPv4Address>()));
+                        newAddressTlvs.Add(new IPv4AddressParameter(buff.Read<IP4Address>()));
                         break;
                     case AddressType.V6:
-                        newAddressTlvs.Add(new IPv6AddressParameter(buff.Read<IPv6Address>()));
+                        newAddressTlvs.Add(new IPv6AddressParameter(buff.Read<IP6Address>()));
                         break;
                     case AddressType.HostName:
                         newAddressTlvs.Add(new HostNameAddressParameter(buff.Read_ASCII(head.Length)));

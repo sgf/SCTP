@@ -74,10 +74,7 @@ namespace XSCTP
         ushort NumberofOutboundStreams;
         ushort NumberofInboundStreams;
         uint InitialTSN;
-        optional[| ChunkLength > 20 |]
-        //array<InitOptionalOrVariableParameter> OptionalOrVariableParameters;
-
-        public InitOptionalOrVariableParameter[] OptionalOrVariableParameters;
+        public InitOptionalOrVariableParameter[] OptionalOrVariableParameters; //optional [|ChunkLength > 20|] array<InitOptionalOrVariableParameter> OptionalOrVariableParameters;
     }
 
 
@@ -112,16 +109,16 @@ namespace XSCTP
     {
         private static AddressHead _head = new AddressHead { Type = AddressType.V4, Length = 8 };
 
-        public IPv4AddressParameter(IPv4Address ipv4)
+        public IPv4AddressParameter(IP4Address ipv4)
         {
             Head = _head;
             IPv4Address = ipv4;
         }
 
         public AddressHead Head { get; }
-        public IPv4Address IPv4Address;
+        public IP4Address IPv4Address;
 
-        public static IPv4AddressParameter New(IPv4Address ipv4)
+        public static IPv4AddressParameter New(IP4Address ipv4)
         {
             return new IPv4AddressParameter(ipv4);
         }
@@ -131,16 +128,16 @@ namespace XSCTP
     {
         private static AddressHead _head = new AddressHead { Type = AddressType.V6, Length = 20 };
 
-        public IPv6AddressParameter(IPv6Address ipv6)
+        public IPv6AddressParameter(IP6Address ipv6)
         {
             Head = _head;
             IPv6Address = ipv6;
         }
 
         public AddressHead Head { get; }
-        public IPv6Address IPv6Address;
+        public IP6Address IPv6Address;
 
-        public static IPv6AddressParameter New(IPv6Address ipv6)
+        public static IPv6AddressParameter New(IP6Address ipv6)
         {
             return new IPv6AddressParameter(ipv6);
         }
