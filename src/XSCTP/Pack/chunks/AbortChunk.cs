@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Text;
 
-namespace NetCore.Pack
+namespace XSCTP
 {
 
     class AbortChunk : IChunk

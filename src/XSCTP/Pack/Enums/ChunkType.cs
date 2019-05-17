@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace NetCore.Pack
+namespace XSCTP
 {
 
     internal enum ChunkType

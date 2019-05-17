@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace NetCore.Pack
+namespace XSCTP
 {
     //Head of SCTP
     struct Head_SCTP
@@ -31,7 +31,7 @@ namespace NetCore.Pack
         }
         public Head_SCTP* Head;
 
-
+        public IChunk[] Chunks { get; set; }
 
     }
 

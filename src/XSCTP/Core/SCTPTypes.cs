@@ -6,7 +6,6 @@ using pk= PacketDotNet;
 namespace XSCTP
 {
 
-
     struct IP4_Hdr
     {
         public IP4Address InAddr;
@@ -18,8 +17,6 @@ namespace XSCTP
         public IP6Address InAddr;
         public IP6Address DstAddr;
     }
-
-
 
 
 }

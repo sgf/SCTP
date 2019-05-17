@@ -19,22 +19,23 @@ namespace XSCTP
 
 
 
-    interface IChunkValue {
-    //    pattern ChunkValue = PayloadData | // 0
-    //Initiation | // 1
-    //InitiationAcknowledgement | // 2
-    //SelectiveAcknowledgement | // 3
-    //HeartbeatRequest | // 4
-    //HeartbeatAcknowledgement | // 5
-    //AbortAssociation | // 6
-    //ShutdownAssociation | // 7
-    //ShutdownAcknowledgement | // 8
-    //OperationError | // 9
-    //CookieEcho | // 10
-    //CookieAcknowledgement | // 11
-    //EcnEcho | // 12
-    //Cwr | // 13
-    //ShutdownComplete;              // 14
+    interface IChunkValue
+    {
+        //    pattern ChunkValue = PayloadData | // 0
+        //Initiation | // 1
+        //InitiationAcknowledgement | // 2
+        //SelectiveAcknowledgement | // 3
+        //HeartbeatRequest | // 4
+        //HeartbeatAcknowledgement | // 5
+        //AbortAssociation | // 6
+        //ShutdownAssociation | // 7
+        //ShutdownAcknowledgement | // 8
+        //OperationError | // 9
+        //CookieEcho | // 10
+        //CookieAcknowledgement | // 11
+        //EcnEcho | // 12
+        //Cwr | // 13
+        //ShutdownComplete;              // 14
     }
 
 
@@ -63,19 +64,6 @@ namespace XSCTP
 
     }
 
-    class Initiation // 1
-    {
-
-        byte Type;  // byte Type where value == 1;
-        byte ChunkFlags;
-        ushort ChunkLength;
-        uint InitiateTag;
-        uint AdvertisedReceiverWindowCredit;
-        ushort NumberofOutboundStreams;
-        ushort NumberofInboundStreams;
-        uint InitialTSN;
-        public InitOptionalOrVariableParameter[] OptionalOrVariableParameters; //optional [|ChunkLength > 20|] array<InitOptionalOrVariableParameter> OptionalOrVariableParameters;
-    }
 
 
     //Optional/Variable-Length Parameters in INIT
@@ -156,10 +144,19 @@ namespace XSCTP
         public byte[] HostNameData;
     }
 
+    /// <summary>
+    /// 防止Cookie过期参数 //INIT的发送方应使用这个参数来建议INIT的接收方提供较长存活跨度的状态CooKIE。
+    /// </summary>
     [StructLayout(LayoutKind.Sequential, Size = 8)]
     struct CookiePreservative : InitOptionalOrVariableParameter
     {
-        public AddressHead Head;//Type=9 Length=8
+        public ref AddressHead Head { get { return ref _head; } }//Type=9 Length=8
+        /// <summary>
+        /// Suggested Cookie Life-span Increment：建议的COOKIE存活跨度增量(32bit的无符号整数)，
+        /// 该参数用来向接收方指示发送方希望接收方为其缺省的COOKIE的存活跨度增加的毫秒数。
+        /// 由于失效的cookie操作差错原因，前一次尝试与对等端建立偶联失败后，又重新尝试偶联建立时，
+        /// 这个任选参数应能由发送方添加到INIT数据块中。接收方出于安全的考虑可以选择忽略建议的COOKIE存活跨度增量。
+        /// </summary>
         public uint SuggestedCookieLifeSpanIncrement;
     }
 
@@ -283,7 +280,8 @@ namespace XSCTP
     }
 
 
-    interface CauseOfError {
+    interface CauseOfError
+    {
 
         //pattern CauseOfError = InvalidStreamIdentifier | // 1
         //    MissingMandatoryParameter | // 2

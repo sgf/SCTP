@@ -49,6 +49,13 @@ namespace XSCTP
         }
 
 
+        private static bool SendChunk() {
+
+
+
+        }
+
+
         public class IPPort
         {
             public IPPort(IAddress ip, ushort port)
@@ -56,26 +63,20 @@ namespace XSCTP
                 IP = ip;
                 Port = port;
             }
-
             public IAddress IP;
             public ushort Port;
-
             public override string ToString()
             {
                 return $"{IP}{Port}";
             }
+
             public static (bool, IPPort) Prase(string ipport)
             {
-                IPEndPoint.TryParse(ipport);
+                if (!IPEndPoint.TryParse(ipport,out IPEndPoint pp)) return (false, default!);
 
-                var ip_post = ipport.Split(":");
-                if (ip_post.Length != 2) return (false, default!);
-                var addr = ip_post[0];
-                var port = ip_post[1];
+                pp.Address
 
-
-
-                    return (true, new IPPort());
+                return (true, new IPPort(pp.Address,(ushort)pp.Port));
             }
         }
 

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace NetCore
+namespace XSCTP
 {
     //https://github.com/prodeveloper0/FuckDPI_V2
     //https://github.com/codebude/MtuOptimizer
