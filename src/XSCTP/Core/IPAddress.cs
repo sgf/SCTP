@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Net;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -12,7 +13,7 @@ namespace XSCTP
 
 
     [StructLayout(LayoutKind.Explicit, Pack = 1)]
-    unsafe struct IP4Address : IComparable
+    unsafe struct IPv4 : IComparable
     {
         [FieldOffset(0)]
         public uint Octets;
@@ -33,7 +34,7 @@ namespace XSCTP
         public int CompareTo(object other)
         {
             if (other != null &&
-                other is IP4Address ipv4)
+                other is IPv4 ipv4)
             {
                 return (this.Octets > ipv4.Octets ? 1 : (this.Octets == ipv4.Octets ? 0 : -1));
             }
@@ -47,11 +48,25 @@ namespace XSCTP
             if (arr.Length != 4) return false;
             return arr.IsArrayItemWithinRange(0, 255, false);
         }
+        public IPv4 Parse(uint src) {
+          return  new IPv4 { Octets = src };
+        }
+        public IPv4? Parse(byte[] src)
+        {
+            return new IPv4 { Octets = BitConverter.ToUInt32(src, 0) };
+        }
+        public IPv4? Parse(string ip)
+        {
+            IPAddress.Parse(ip).
+        }
+        public IPv4? Parse()
+        {
 
+        }
     }
 
     [StructLayout(LayoutKind.Explicit, Pack = 1)]
-    internal unsafe struct IP6Address : IComparable
+    internal unsafe struct IPv6 : IComparable
     {
         [FieldOffset(0)]
         public Int128 Value;
@@ -74,6 +89,9 @@ namespace XSCTP
         [FieldOffset(7)]
         public ushort _7;
 
+
+
+
         public ushort Length => 16;
 
         public override string ToString()
@@ -88,7 +106,7 @@ namespace XSCTP
         public unsafe int CompareTo(object other)
         {
             if (other != null &&
-                other is IP6Address ipv6)
+                other is IPv6 ipv6)
             {
                 var _ipv6 = new BigInteger(new ReadOnlySpan<byte>(ipv6.Octets, 16));
                 fixed (void* b = Octets)
@@ -146,7 +164,7 @@ namespace XSCTP
 
     static class IP4AddressEx
     {
-        static int IPv4ToInt(this IP4Address address)
+        static int IPv4ToInt(this IPv4 address)
         {
             return (address._3 << 24) +
                 (address._2 << 16) +

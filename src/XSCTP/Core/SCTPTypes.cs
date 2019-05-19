@@ -8,14 +8,14 @@ namespace XSCTP
 
     struct IP4_Hdr
     {
-        public IP4Address InAddr;
-        public IP4Address DstAddr;
+        public IPv4 InAddr;
+        public IPv4 DstAddr;
     }
 
     struct IP6_Hdr
     {
-        public IP6Address InAddr;
-        public IP6Address DstAddr;
+        public IPv6 InAddr;
+        public IPv6 DstAddr;
     }
 
 

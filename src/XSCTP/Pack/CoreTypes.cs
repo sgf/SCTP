@@ -97,16 +97,16 @@ namespace XSCTP
     {
         private static AddressHead _head = new AddressHead { Type = AddressType.V4, Length = 8 };
 
-        public IPv4AddressParameter(IP4Address ipv4)
+        public IPv4AddressParameter(IPv4 ipv4)
         {
             Head = _head;
             IPv4Address = ipv4;
         }
 
         public AddressHead Head { get; }
-        public IP4Address IPv4Address;
+        public IPv4 IPv4Address;
 
-        public static IPv4AddressParameter New(IP4Address ipv4)
+        public static IPv4AddressParameter New(IPv4 ipv4)
         {
             return new IPv4AddressParameter(ipv4);
         }
@@ -116,16 +116,16 @@ namespace XSCTP
     {
         private static AddressHead _head = new AddressHead { Type = AddressType.V6, Length = 20 };
 
-        public IPv6AddressParameter(IP6Address ipv6)
+        public IPv6AddressParameter(IPv6 ipv6)
         {
             Head = _head;
             IPv6Address = ipv6;
         }
 
         public AddressHead Head { get; }
-        public IP6Address IPv6Address;
+        public IPv6 IPv6Address;
 
-        public static IPv6AddressParameter New(IP6Address ipv6)
+        public static IPv6AddressParameter New(IPv6 ipv6)
         {
             return new IPv6AddressParameter(ipv6);
         }
