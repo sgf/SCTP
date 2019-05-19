@@ -13,7 +13,7 @@ namespace XSCTP
 
 
     [StructLayout(LayoutKind.Explicit, Pack = 1)]
-    unsafe struct IPv4 : IComparable
+   internal unsafe partial struct IPv4 : IComparable
     {
         [FieldOffset(0)]
         public uint Octets;

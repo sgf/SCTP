@@ -7,6 +7,66 @@ using System.Text;
 
 namespace XSCTP
 {
+
+    internal partial struct IPv4
+    {
+        internal unsafe static IPv4? Parse(ReadOnlySpan<char> ipSpan)
+        {
+            long address = 0;
+
+            int length = ipSpan.Length;
+            long num;
+            fixed (char* reference = &MemoryMarshal.GetReference(ipSpan))// & ipSpan.GetPinnableReference()) //MemoryMarshal.GetReference(ipSpan)
+            {
+                char* name = reference;
+                num = IPv4AddressHelper.ParseNonCanonical(name, 0, ref length, true);
+            }
+//#nullable disable
+//#nullable restore
+            if (num != -1L && length == ipSpan.Length)
+            {
+                address = (long)(((ulong)-16777216 & (ulong)num) >> 24 | (ulong)((16711680L & num) >> 8) | (ulong)((ulong)(65280L & num) << 8) | (ulong)((ulong)(255L & num) << 24));
+                return new IPv4 { Octets = address };
+                return true;
+            }
+            address = 0L;
+            return false;
+
+
+            uint newAddress;
+            if (IPAddressParser.Ipv4StringToAddress(ipSpan, out newAddress))
+            {
+            }
+            throw new FormatException("字符串并非IPv4格式", new SocketException((int)SocketError.InvalidArgument));
+        }
+
+
+
+
+    }
+
+
+
+    internal partial struct IPv6
+    {
+
+        internal unsafe static IPv6? Parse(ReadOnlySpan<char> ipSpan)
+        {
+
+            if (ipSpan.Contains(':'))
+            {
+                ushort* ptr = stackalloc ushort[16];
+                new Span<ushort>((void*)ptr, 8).Clear();
+                uint scopeid;
+                if (IPAddressParser.Ipv6StringToAddress(ipSpan, ptr, 8, out scopeid))
+                {
+                    return new IPv6(ptr, 8, scopeid);
+                }
+            }
+            throw new FormatException("字符串并非IPv6格式", new SocketException((int)SocketError.InvalidArgument));
+        }
+    }
+
     internal class IPAddressParser
     {
         // Token: 0x06000122 RID: 290 RVA: 0x0000A7EC File Offset: 0x000091EC
@@ -15,7 +75,7 @@ namespace XSCTP
             long newAddress;
             if (ipSpan.Contains(':'))
             {
-                ushort* ptr = stackalloc ushort[(UIntPtr)16];
+                ushort* ptr = stackalloc ushort[16];
                 new Span<ushort>((void*)ptr, 8).Clear();
                 uint scopeid;
                 if (IPAddressParser.Ipv6StringToAddress(ipSpan, ptr, 8, out scopeid))
