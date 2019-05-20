@@ -41,6 +41,7 @@ namespace XSCTP
         /// <returns></returns>
         private static (bool ok, string msg) Bind(IPPort end)
         {
+
             //获取进程ID int pid = Process.GetCurrentProcess().Id;
             var key = $"SCTP{end}"; //SCTP+IP[固定长度]+端口  //+进程ID 先排除
             using var mx = new Mutex(true, key);
@@ -67,13 +68,17 @@ namespace XSCTP
             public ushort Port;
             public override string ToString()
             {
+                BitConverter.ToInt32(new Span<byte>());
                 return $"{IP}{Port}";
             }
 
             public static (bool, IPPort) Prase(string ipport)
             {
-                if (!IPEndPoint.TryParse(ipport,out IPEndPoint pp)) return (false, default!);
+                if (!IPEndPoint.TryParse(ipport, out IPEndPoint pp)) return (false, default!);
+                var _ip_port = ipport.Split(":");
+                if (IPv4.Parse(_ip_port[0])) {
 
+                }
                 pp.Address
 
                 return (true, new IPPort(pp.Address,(ushort)pp.Port));

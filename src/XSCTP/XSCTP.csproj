@@ -11,10 +11,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="IPAddressRange\Example.cs.bak" />
     <None Remove="Pack\int128.cs.bak" />
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="IPAddressRange\Example.cs.bak" />
     <Compile Include="Pack\int128.cs.bak" />
   </ItemGroup>
 

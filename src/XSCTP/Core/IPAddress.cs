@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Net;
+using System.Net.Sockets;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -13,7 +14,7 @@ namespace XSCTP
 
 
     [StructLayout(LayoutKind.Explicit, Pack = 1)]
-   internal unsafe partial struct IPv4 : IComparable
+    internal unsafe partial struct IPv4 : IComparable
     {
         [FieldOffset(0)]
         public uint Octets;
@@ -48,25 +49,28 @@ namespace XSCTP
             if (arr.Length != 4) return false;
             return arr.IsArrayItemWithinRange(0, 255, false);
         }
-        public IPv4 Parse(uint src) {
-          return  new IPv4 { Octets = src };
-        }
-        public IPv4? Parse(byte[] src)
+        public static IPv4 Parse(uint src)
         {
-            return new IPv4 { Octets = BitConverter.ToUInt32(src, 0) };
+            return new IPv4 { Octets = src };
         }
-        public IPv4? Parse(string ip)
+        public static IPv4? Parse(byte[] src)
         {
-            IPAddress.Parse(ip).
+            if(src.Length == 4)
+                return new IPv4 { Octets = BitConverter.ToUInt32(src, 0) };
+            return null;
         }
-        public IPv4? Parse()
+        public static IPv4? Parse(string ip)
         {
-
+            if (IPAddress.TryParse(ip, out IPAddress ipaddr) && ipaddr.AddressFamily == AddressFamily.InterNetwork)
+            {
+                return new IPv4 { Octets = BitConverter.ToUInt32(ipaddr.GetAddressBytes(), 0) };
+            }
+            return null;
         }
     }
 
     [StructLayout(LayoutKind.Explicit, Pack = 1)]
-    internal unsafe struct IPv6 : IComparable
+    internal unsafe partial struct IPv6 : IComparable
     {
         [FieldOffset(0)]
         public Int128 Value;
@@ -88,9 +92,6 @@ namespace XSCTP
         public ushort _6;
         [FieldOffset(7)]
         public ushort _7;
-
-
-
 
         public ushort Length => 16;
 
