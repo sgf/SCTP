@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Buffers;
+using System.Buffers.Binary;
 using System.Globalization;
 using System.Net;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 
@@ -16,8 +18,15 @@ namespace ConsoleApp1
             //var buffer = memory.ToArray();
             //NetworkHelpers.CopyTo((ushort)12345, buffer, 0);
             //var num = Convert.ToInt32("23", 16);
-            //var sss = "Hello World!".AsSpan(0,20);
+            //var sss = "Hello World!".AsSpan(0, 20);
             //string s1 = "　的 ".Trim();
+
+            var sss = "Hello World!".AsSpan(0, 20);
+
+
+            ref var v = ref Unsafe.As<byte, T>(ref sss.GetPinnableReference());
+
+
             IPAddress iPAddress = default!;
             try
             {
