@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<config id="XDivert" xmlns="urn:SharpGen.Config">
+  <assembly>XDivert</assembly>
+  <namespace>XDivert</namespace>
+  <depends>SharpGen.Runtime</depends>
+
+  <sdk name="StdLib" />
+  <sdk name="WindowsSdk" version="10.0.17763.0" />
+
+  <extension>
+    <create class="XDivert.Device" visibility="public static" />
+  </extension>
+  <include-dir override="true">$(THIS_CONFIG_PATH)/WinDivert200rcA/include</include-dir>
+  <include file="windivert.h" namespace="XDivert" attach="true" />
+  
+  <mapping>
+    <map function=".*" dll='"XDivert.Device"' group="XDivert.Device" />
+  </mapping>
+</config>

@@ -13,7 +13,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetCore", "NetCore\NetCore.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "XTest_NetCore", "XTest_NetCore\XTest_NetCore.csproj", "{61797DEB-F9C1-425E-A117-37382D1634AD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XSCTP", "XSCTP\XSCTP.csproj", "{FE8F1853-6A34-4F63-9186-72A7DF2914F4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "XSCTP", "XSCTP\XSCTP.csproj", "{FE8F1853-6A34-4F63-9186-72A7DF2914F4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XDivert", "XDivert\XDivert.csproj", "{2C7EC326-5717-47EF-9028-157CD0CB5E80}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,6 +47,10 @@ Global
 		{FE8F1853-6A34-4F63-9186-72A7DF2914F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FE8F1853-6A34-4F63-9186-72A7DF2914F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FE8F1853-6A34-4F63-9186-72A7DF2914F4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2C7EC326-5717-47EF-9028-157CD0CB5E80}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2C7EC326-5717-47EF-9028-157CD0CB5E80}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2C7EC326-5717-47EF-9028-157CD0CB5E80}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2C7EC326-5717-47EF-9028-157CD0CB5E80}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

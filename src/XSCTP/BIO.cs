@@ -22,40 +22,16 @@ namespace System
         void WriteBody();
     }
 
-
-
-
-
-
-
     /// <summary>
     /// Binary IO
     /// </summary>
     public static class BIO
     {
 
-
-        /// <summary>
-        /// Reads a structure of type T out of a read-only span of bytes.
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T Read<T>(ReadOnlySpan<byte> source)
-            where T : struct
-        {
-            if (RuntimeHelpers.IsReferenceOrContainsReferences<T>())
-            {
-                ThrowHelper.ThrowInvalidTypeWithPointersNotSupported(typeof(T));
-            }
-            if (Unsafe.SizeOf<T>() > source.Length)
-            {
-                ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument.length);
-            }
-            return Unsafe.ReadUnaligned<T>(ref GetReference(source));
-        }
-
-
         public unsafe static ref T Read<T>(this Memory<byte> memory) where T : unmanaged
         {
+            
+
             //memory.Slice()
             var _m = memory;
             var size = sizeof(T);

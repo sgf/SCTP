@@ -12,7 +12,6 @@ namespace System
     /// </summary>
     public static class GeneralExtensions
     {
-        
 
         /// <summary>
         /// 遍历列表并进行操作

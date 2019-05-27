@@ -24,7 +24,9 @@ namespace ConsoleApp1
             var sss = "Hello World!".AsSpan(0, 20);
 
 
-            ref var v = ref Unsafe.As<byte, T>(ref sss.GetPinnableReference());
+            ArrayPool<byte>.Shared.Rent(100);
+
+            //ref var v = ref Unsafe.As<byte, T>(ref sss.GetPinnableReference());
 
 
             IPAddress iPAddress = default!;
@@ -41,7 +43,7 @@ namespace ConsoleApp1
             Console.ReadLine();
 
 
-            string sss = null;
+            //string sss = null;
             Bind();
 
             //Console.WriteLine(s1.Length);
@@ -78,6 +80,7 @@ namespace ConsoleApp1
             [FieldOffset(0)]
             public int A3;
         }
+
 
     }
 }
