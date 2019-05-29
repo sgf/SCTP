@@ -66,8 +66,8 @@ and ip.Protocol=132 "//SCTP协议
             var pack = new WinDivertBuffer(workspace.ToArray());
             WinDivertAddress addr = default;
             NativeOverlapped nol = default;
-            IntPtr recvEvent = Kernel32.CreateEvent(IntPtr.Zero, false, false, IntPtr.Zero);
-            nol.EventHandle = recvEvent;
+            var se = SingleEvent.Create();
+            nol.EventHandle = se.Event;
             WinDivertParseResult result = new WinDivertParseResult();
             uint recvAsyncIoLen = 0;
             //writer.WriteAsync()
@@ -80,44 +80,23 @@ and ip.Protocol=132 "//SCTP协议
                     addr.Reset();
                     if (!wd.WinDivertRecvEx(WDHandle, pack, 0, ref addr, ref recvAsyncIoLen, ref nol))
                     {
-                        if (!Win32.Error(ERROR_IO_PENDING, "Unknown IO error ID while awaiting overlapped result."))
+                        if (!Win32.LastErr(ERROR_IO_PENDING, "Unknown IO error ID while awaiting overlapped result."))
                             continue;
-
-                        TryingGetMsg:
-                        if (!Running)
+                        if (!se.Wait(existsAction: () => Running))
                             goto end;
-                        switch (Kernel32.WaitForSingleObject(recvEvent, 500))
-                        {
-                            case (uint)WaitForSingleObjectResult.WaitObject0:
-                                break;
-                            case (uint)WaitForSingleObjectResult.WaitTimeout:
-                                Win32.Error("Failed to read packet from WinDivert by timeout with Win32 error ");
-                                goto TryingGetMsg;
-                            //goto end;
-                            default:
-                                Win32.Error("Failed to read packet from WinDivert with Win32 error ");
-                                goto end;
-                        }
-
-                        //while (Kernel32.WaitForSingleObject(recvEvent, 500) == (uint)WaitForSingleObjectResult.WaitTimeout)
-                        //{
-                        //    if (!Running)
-                        //        goto end;
-                        //}
 
                         if (!Kernel32.GetOverlappedResult(WDHandle, ref nol, ref recvAsyncIoLen, false))
                         {
                             Debug.WriteLine($"Failed to get overlapped result.");
-                            Kernel32.CloseHandle(recvEvent);
+                            se.Close();
                             continue;
                         }
                         readLen = recvAsyncIoLen;
                     }
 
-                    Kernel32.CloseHandle(recvEvent);//这个可能位置不太对？关掉是否影响下一轮的接收
+                    se.Close();//这个可能位置不太对？关掉是否影响下一轮的接收
                     Debug.WriteLine("Read packet {0}", readLen);
                     result = WinDivert.WinDivertHelperParsePacket(pack, readLen);
-
                     writer.Advance((int)readLen);
                     await writer.FlushAsync();
                     if (addr.Direction == WinDivertDirection.Inbound)
@@ -133,7 +112,7 @@ and ip.Protocol=132 "//SCTP协议
             finally
             {
                 wd.WinDivertClose(WDHandle);
-                Kernel32.CloseHandle(recvEvent);
+                se.Close();
             }
             end:;
 
@@ -201,11 +180,58 @@ and ip.Protocol=132 "//SCTP协议
     }
 
 
+    public struct SingleEvent
+    {
+        /// <summary>
+        /// 等待结果
+        /// </summary>
+        /// <param name="timeOut">MilliSeconds</param>
+        /// <param name="loopWhenTimeOut">超时是否永远重试</param>
+        /// <param name="existsAction">超时重试时如果满足条件 是否退出重试loop</param>
+        public bool Wait(uint timeOut = 250, bool loopWhenTimeOut = true, Func<bool> existsAction = null)
+        {
+            again://timeOut Again Loop 
+            switch (Kernel32.WaitForSingleObject(Event, timeOut))
+            {
+                case (uint)WaitForSingleObjectResult.WaitObject0:
+                    return true;
+                case (uint)WaitForSingleObjectResult.WaitTimeout:
+                    Win32.LastErr("Failed to read packet from WinDivert by timeout with Win32 error ");
+                    if (loopWhenTimeOut && (existsAction == null | !existsAction())) goto again;
+                    break;
+                default:
+                    Win32.LastErr("Failed to read packet from WinDivert with Win32 error ");
+                    break;
+            }
+            return false;
+        }
+
+        public static SingleEvent Create()
+        {
+            SingleEvent se;
+            se.Event = Kernel32.CreateEvent(IntPtr.Zero, false, false, IntPtr.Zero);
+            se.Closeing = false;
+            return se;
+        }
+
+        public void Close()
+        {
+            if (!Closeing && Event != IntPtr.Zero)
+            {
+                Closeing = true;
+                Kernel32.CloseHandle(Event);
+            }
+        }
+        private bool Closeing;
+        public IntPtr Event;
+
+    }
+
 
     public class Win32
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool Error(int error, string msg)
+        public static bool LastErr(int error, string msg)
         {
             var _error = Marshal.GetLastWin32Error();
             if (_error == error) return true;
@@ -214,7 +240,7 @@ and ip.Protocol=132 "//SCTP协议
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Error(string msg)
+        public static void LastErr(string msg)
         {
             var _error = Marshal.GetLastWin32Error();
             Debug.WriteLine($"Error:{_error} Msg:{msg}");
