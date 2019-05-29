@@ -23,11 +23,10 @@ namespace SctpTestConsoleApp
         {
             pack = default;
             consumedTo = default;
-            buff.PositionOf()
-
+            //buff.PositionOf()
+            return true;
         }
 
-        public 
 
     }
 

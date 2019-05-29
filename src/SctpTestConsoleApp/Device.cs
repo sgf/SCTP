@@ -70,38 +70,18 @@ and ip.Protocol=132 "//SCTP协议
             nol.EventHandle = se.Event;
             WinDivertParseResult result = new WinDivertParseResult();
             uint recvAsyncIoLen = 0;
+            uint readLen = 0;
+
             //writer.WriteAsync()
             try
             {
                 while (Running)
                 {
-                    uint readLen = 0;
-                    recvAsyncIoLen = 0;
-                    addr.Reset();
-                    if (!wd.WinDivertRecvEx(WDHandle, pack, 0, ref addr, ref recvAsyncIoLen, ref nol))
-                    {
-                        if (!Win32.LastErr(ERROR_IO_PENDING, "Unknown IO error ID while awaiting overlapped result."))
-                            continue;
-                        if (!se.Wait(existsAction: () => Running))
-                            goto end;
-
-                        if (!Kernel32.GetOverlappedResult(WDHandle, ref nol, ref recvAsyncIoLen, false))
-                        {
-                            Debug.WriteLine($"Failed to get overlapped result.");
-                            se.Close();
-                            continue;
-                        }
-                        readLen = recvAsyncIoLen;
-                    }
-
-                    se.Close();//这个可能位置不太对？关掉是否影响下一轮的接收
-                    Debug.WriteLine("Read packet {0}", readLen);
-                    result = WinDivert.WinDivertHelperParsePacket(pack, readLen);
+                    readLen = 0;
+                    var (ok, rpack, readCnt) = WDInnerReceiveOnePack();
+                    if (!ok) goto end;
                     writer.Advance((int)readLen);
                     await writer.FlushAsync();
-                    if (addr.Direction == WinDivertDirection.Inbound)
-                        Debug.WriteLine("inbound");
-                    DisplayPackInfo(result);
                 }
 
             }
@@ -115,8 +95,52 @@ and ip.Protocol=132 "//SCTP协议
                 se.Close();
             }
             end:;
+            
+            (bool ok, WinDivertParseResult pack, uint readLen) WDInnerReceiveOnePack()
+            {
+                try
+                {
+                    addr.Reset();
+                    again:
+                    if (!Running) goto end_sub;
+                    if (!wd.WinDivertRecvEx(WDHandle, pack, 0, ref addr, ref readLen, ref nol))
+                    {
+                        if (!Win32.LasErr(ERROR_IO_PENDING, "Unknown IO error ID while awaiting overlapped result."))
+                            goto again;
+                        if (!se.Wait(existsAction: () => Running))
+                            goto end_sub;
 
+                        if (!Kernel32.GetOverlappedResult(WDHandle, ref nol, ref readLen, false))
+                        {
+                            Debug.WriteLine($"Failed to get overlapped result.");
+                            se.Close();
+                            goto again;
+                        }
+                    }
+                    se.Close();//这个可能位置不太对？关掉是否影响下一轮的接收
+                    Debug.WriteLine("Read packet {0}", readLen);
+                    result = WinDivert.WinDivertHelperParsePacket(pack, readLen);
+                    if (addr.Direction == WinDivertDirection.Inbound)
+                        Debug.WriteLine("inbound");
+                    DisplayPackInfo(result);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Fatal error in read thread: {0}", ex);
+                    goto end_sub;
+                }
+                finally
+                {
+                    wd.WinDivertClose(WDHandle);
+                    se.Close();
+                }
 
+                return (true, result, readLen);
+
+                end_sub:
+                return (false, result, readLen);
+
+            }
             unsafe void DisplayPackInfo(WinDivertParseResult pack)
             {
                 if (result.IPv4Header != null && result.TcpHeader != null)
@@ -136,20 +160,20 @@ and ip.Protocol=132 "//SCTP协议
 
                 var readresult = await reader.ReadAsync();
                 var availableBuff = readresult.Buffer;
-                availableBuff.PositionOf<byte>()
+                //availableBuff.PositionOf<byte>()
                 //parser.Prase()
 
             }
 
 
 
-            reader.AdvanceTo()
+            //reader.AdvanceTo()
 
 
         }
 
 
-        public unsafe ValueTask Send(Span<byte> data)
+        public unsafe void  Send(Span<byte> data)
         {
             if (Running)
             {
@@ -171,80 +195,17 @@ and ip.Protocol=132 "//SCTP协议
 
         }
 
-
-
+        private bool Closeing = false;
         public void Dispose()
         {
-            wd.WinDivertClose(WDHandle);
-        }
-    }
-
-
-    public struct SingleEvent
-    {
-        /// <summary>
-        /// 等待结果
-        /// </summary>
-        /// <param name="timeOut">MilliSeconds</param>
-        /// <param name="loopWhenTimeOut">超时是否永远重试</param>
-        /// <param name="existsAction">超时重试时如果满足条件 是否退出重试loop</param>
-        public bool Wait(uint timeOut = 250, bool loopWhenTimeOut = true, Func<bool> existsAction = null)
-        {
-            again://timeOut Again Loop 
-            switch (Kernel32.WaitForSingleObject(Event, timeOut))
-            {
-                case (uint)WaitForSingleObjectResult.WaitObject0:
-                    return true;
-                case (uint)WaitForSingleObjectResult.WaitTimeout:
-                    Win32.LastErr("Failed to read packet from WinDivert by timeout with Win32 error ");
-                    if (loopWhenTimeOut && (existsAction == null | !existsAction())) goto again;
-                    break;
-                default:
-                    Win32.LastErr("Failed to read packet from WinDivert with Win32 error ");
-                    break;
-            }
-            return false;
-        }
-
-        public static SingleEvent Create()
-        {
-            SingleEvent se;
-            se.Event = Kernel32.CreateEvent(IntPtr.Zero, false, false, IntPtr.Zero);
-            se.Closeing = false;
-            return se;
-        }
-
-        public void Close()
-        {
-            if (!Closeing && Event != IntPtr.Zero)
+            if (!Closeing && WDHandle != IntPtr.Zero)
             {
                 Closeing = true;
-                Kernel32.CloseHandle(Event);
+                wd.WinDivertClose(WDHandle);
             }
         }
-        private bool Closeing;
-        public IntPtr Event;
-
     }
 
 
-    public class Win32
-    {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool LastErr(int error, string msg)
-        {
-            var _error = Marshal.GetLastWin32Error();
-            if (_error == error) return true;
-            Debug.WriteLine($"Error:{_error} Msg:{msg}");
-            return false;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void LastErr(string msg)
-        {
-            var _error = Marshal.GetLastWin32Error();
-            Debug.WriteLine($"Error:{_error} Msg:{msg}");
-        }
-    }
 
 }
