@@ -9,11 +9,39 @@
 
   <extension>
     <create class="XDivert.Device" visibility="public static" />
+    <create-cpp macro="WINDIVERT_FLAG_.*" enum="WINDIVERT_FLAGS" type="ushort" />
+    <create-cpp macro="WINDIVERT_PARAM_MAX" enum="WindivertParam" />
+    <create-cpp macro="WINDIVERT_SHUTDOWN_MAX" enum="WindivertShutdown" />
+    
+    <const from-macro="WINDIVERT_PRIORITY_HIGHEST" class="XDivert.Device" type="int"/>
+    <const from-macro="WINDIVERT_PRIORITY_LOWEST" class="XDivert.Device" type="int"/>
+    <const from-macro="WINDIVERT_PARAM_QUEUE_LENGTH_DEFAULT" class="XDivert.Device" type="int"/>
+    <const from-macro="WINDIVERT_PARAM_QUEUE_LENGTH_MIN" class="XDivert.Device" type="int"/>
+    <const from-macro="WINDIVERT_PARAM_QUEUE_LENGTH_MAX" class="XDivert.Device" type="int"/>
+    <const from-macro="WINDIVERT_PARAM_QUEUE_TIME_DEFAULT" class="XDivert.Device" type="int"/>
+    <const from-macro="WINDIVERT_PARAM_QUEUE_TIME_MIN" class="XDivert.Device" type="int"/>
+    <const from-macro="WINDIVERT_PARAM_QUEUE_TIME_MAX" class="XDivert.Device" type="int"/>
+    <const from-macro="WINDIVERT_PARAM_QUEUE_SIZE_DEFAULT" class="XDivert.Device" type="int"/>
+    <const from-macro="WINDIVERT_PARAM_QUEUE_SIZE_MIN" class="XDivert.Device" type="int"/>
+    <const from-macro="WINDIVERT_PARAM_QUEUE_SIZE_MAX" class="XDivert.Device" type="int"/>
+    <const from-macro="WINDIVERT_BATCH_MAX" class="XDivert.Device" type="int"/>
+    <const from-macro="WINDIVERT_MTU_MAX" class="XDivert.Device" type="int"/>
+    <const from-macro="WINDIVERT_HELPER_NO_IP_CHECKSUM" class="XDivert.Device" type="int"/>
+    <const from-macro="WINDIVERT_HELPER_NO_ICMP_CHECKSUM" class="XDivert.Device" type="int"/>
+    <const from-macro="WINDIVERT_HELPER_NO_ICMPV6_CHECKSUM" class="XDivert.Device" type="int"/>
+    <const from-macro="WINDIVERT_HELPER_NO_TCP_CHECKSUM" class="XDivert.Device" type="int"/>
+    <const from-macro="WINDIVERT_HELPER_NO_UDP_CHECKSUM" class="XDivert.Device" type="int"/>
+
+    
   </extension>
   <include-dir override="true">$(THIS_CONFIG_PATH)/WinDivert200rcA/include</include-dir>
   <include file="windivert.h" namespace="XDivert" attach="true" />
-  
+
+  <bindings>
+    <bind from="OVERLAPPED" to="System.Threading.NativeOverlapped" />
+  </bindings>
+
   <mapping>
-    <map function=".*" dll='"XDivert.Device"' group="XDivert.Device" />
+    <map function=".*" dll='"WinDivert.dll"' group="XDivert.Device" />
   </mapping>
 </config>

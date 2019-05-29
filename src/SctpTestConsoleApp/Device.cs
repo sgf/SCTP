@@ -3,6 +3,7 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO.Pipelines;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -22,7 +23,8 @@ namespace SctpTestConsoleApp
 
         public Device()
         {
-            WDHandle = wd.WinDivertOpen(@"outbound and inbound
+            WDHandle = wd.WinDivertOpen(
+               /*outbound 暂时不需要 outbound and */ @"inbound
 and ip.Protocol=132 "//SCTP协议
  , WinDivertLayer.Network, 0, WinDivertOpenFlags.None);
             wd.WinDivertSetParam(WDHandle, WinDivertParam.QueueLen, WinDivertParam_QueueLenMax);
@@ -30,6 +32,9 @@ and ip.Protocol=132 "//SCTP协议
             wd.WinDivertSetParam(WDHandle, WinDivertParam.QueueSize, WinDivertParam_QueueSizeMax);
             Task.Run(Run);
         }
+
+        ///只有 WINDIVERT_LAYER_NETWORK WINDIVERT_LAYER_NETWORK_FORWARD 支持注入
+
 
         const int
             WinDivertParam_QueueLenMax = 16384,// 16kb
@@ -41,9 +46,9 @@ and ip.Protocol=132 "//SCTP协议
 
         public async void Run()
         {
-            Pipe pipe = new Pipe();
-            var t1 = Receive(pipe.Writer);
-            var t2 = OnMsg(pipe.Reader);
+            inputPipe = new Pipe();
+            var t1 = FilterPackets(inputPipe.Writer);
+            var t2 = OnMsg(inputPipe.Reader);
             await Task.WhenAll(t1.AsTask(), t2.AsTask());
         }
 
@@ -53,7 +58,9 @@ and ip.Protocol=132 "//SCTP协议
         public bool Running = false;
 
 
-        private async ValueTask Receive(PipeWriter writer)
+        private Pipe inputPipe = new Pipe();
+
+        private async ValueTask FilterPackets(PipeWriter writer)
         {
             var workspace = writer.GetMemory(8192);
             var pack = new WinDivertBuffer(workspace.ToArray());
@@ -73,22 +80,22 @@ and ip.Protocol=132 "//SCTP协议
                     addr.Reset();
                     if (!wd.WinDivertRecvEx(WDHandle, pack, 0, ref addr, ref recvAsyncIoLen, ref nol))
                     {
-                        var error = Marshal.GetLastWin32Error();
-                        if (error != ERROR_IO_PENDING)
-                        {
-                            Debug.WriteLine($"Unknown IO error ID {error} while awaiting overlapped result.");
+                        if (!Win32.Error(ERROR_IO_PENDING, "Unknown IO error ID while awaiting overlapped result."))
                             continue;
-                        }
 
+                        TryingGetMsg:
+                        if (!Running)
+                            goto end;
                         switch (Kernel32.WaitForSingleObject(recvEvent, 500))
                         {
                             case (uint)WaitForSingleObjectResult.WaitObject0:
                                 break;
                             case (uint)WaitForSingleObjectResult.WaitTimeout:
-                                Debug.WriteLine($"Failed to read packet from WinDivert by timeout with Win32 error {Marshal.GetLastWin32Error()}.");
-                                goto end;
+                                Win32.Error("Failed to read packet from WinDivert by timeout with Win32 error ");
+                                goto TryingGetMsg;
+                            //goto end;
                             default:
-                                Debug.WriteLine($"Failed to read packet from WinDivert with Win32 error  {Marshal.GetLastWin32Error()}.");
+                                Win32.Error("Failed to read packet from WinDivert with Win32 error ");
                                 goto end;
                         }
 
@@ -107,7 +114,7 @@ and ip.Protocol=132 "//SCTP协议
                         readLen = recvAsyncIoLen;
                     }
 
-                    Kernel32.CloseHandle(recvEvent);
+                    Kernel32.CloseHandle(recvEvent);//这个可能位置不太对？关掉是否影响下一轮的接收
                     Debug.WriteLine("Read packet {0}", readLen);
                     result = WinDivert.WinDivertHelperParsePacket(pack, readLen);
 
@@ -133,7 +140,6 @@ and ip.Protocol=132 "//SCTP协议
 
             unsafe void DisplayPackInfo(WinDivertParseResult pack)
             {
-
                 if (result.IPv4Header != null && result.TcpHeader != null)
                     Debug.WriteLine($"V4 TCP packet {addr.Direction} from {result.IPv4Header->SrcAddr}:{result.TcpHeader->SrcPort} to {result.IPv4Header->DstAddr}:{result.TcpHeader->DstPort}");
 
@@ -144,8 +150,22 @@ and ip.Protocol=132 "//SCTP协议
 
         }
 
-        public unsafe async ValueTask OnMsg(PipeReader reader)
+        public async ValueTask OnMsg(PipeReader reader)
         {
+            while (Running)
+            {
+
+                var readresult = await reader.ReadAsync();
+                var availableBuff = readresult.Buffer;
+                availableBuff.PositionOf<byte>()
+                //parser.Prase()
+
+            }
+
+
+
+            reader.AdvanceTo()
+
 
         }
 
@@ -179,4 +199,26 @@ and ip.Protocol=132 "//SCTP协议
             wd.WinDivertClose(WDHandle);
         }
     }
+
+
+
+    public class Win32
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool Error(int error, string msg)
+        {
+            var _error = Marshal.GetLastWin32Error();
+            if (_error == error) return true;
+            Debug.WriteLine($"Error:{_error} Msg:{msg}");
+            return false;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Error(string msg)
+        {
+            var _error = Marshal.GetLastWin32Error();
+            Debug.WriteLine($"Error:{_error} Msg:{msg}");
+        }
+    }
+
 }

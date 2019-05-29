@@ -10,6 +10,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="obj\Debug\netcoreapp3.0\SharpGen\**" />
+    <EmbeddedResource Remove="obj\Debug\netcoreapp3.0\SharpGen\**" />
+    <None Remove="obj\Debug\netcoreapp3.0\SharpGen\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <SharpGenConsumerMapping Remove="Mapping.xml" />
   </ItemGroup>
 
@@ -20,6 +26,10 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="obj\Debug\netcoreapp3.0\SharpGen\" />
   </ItemGroup>
 
 </Project>
