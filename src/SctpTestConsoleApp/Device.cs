@@ -95,11 +95,12 @@ and ip.Protocol=132 "//SCTP协议
                 se.Close();
             }
             end:;
-            
+
             (bool ok, WinDivertParseResult pack, uint readLen) WDInnerReceiveOnePack()
             {
                 try
                 {
+                    //var sp = writer.GetSpan();
                     addr.Reset();
                     again:
                     if (!Running) goto end_sub;
@@ -173,7 +174,7 @@ and ip.Protocol=132 "//SCTP协议
         }
 
 
-        public unsafe void  Send(Span<byte> data)
+        public unsafe void Send(Span<byte> data)
         {
             if (Running)
             {
