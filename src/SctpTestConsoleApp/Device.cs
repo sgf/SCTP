@@ -11,22 +11,24 @@ using System.Threading.Tasks;
 using WinDivertSharp;
 using WinDivertSharp.WinAPI;
 using wd = WinDivertSharp.WinDivert;
+using XDivert;
+using System.Net;
 
 namespace SctpTestConsoleApp
 {
-    public class Device : IDisposable
+    public class NetDevice : IDisposable
     {
         /// <summary>
         /// WinDivertPointer
         /// </summary>
         private IntPtr WDHandle;
 
-        public Device()
+        public NetDevice()
         {
             WDHandle = wd.WinDivertOpen(
-               /*outbound 暂时不需要 outbound and */ @"inbound
+            /*outbound 暂时不需要 outbound and */ @"inbound
 and ip.Protocol=132 "//SCTP协议
- , WinDivertLayer.Network, 0, WinDivertOpenFlags.None);
+, WinDivertLayer.Network, 0, WinDivertOpenFlags.None);
             wd.WinDivertSetParam(WDHandle, WinDivertParam.QueueLen, WinDivertParam_QueueLenMax);
             wd.WinDivertSetParam(WDHandle, WinDivertParam.QueueTime, WinDivertParam_QueueTimeMax);
             wd.WinDivertSetParam(WDHandle, WinDivertParam.QueueSize, WinDivertParam_QueueSizeMax);
@@ -69,7 +71,6 @@ and ip.Protocol=132 "//SCTP协议
             var se = SingleEvent.Create();
             nol.EventHandle = se.Event;
             WinDivertParseResult result = new WinDivertParseResult();
-            uint recvAsyncIoLen = 0;
             uint readLen = 0;
 
             //writer.WriteAsync()
@@ -178,9 +179,21 @@ and ip.Protocol=132 "//SCTP协议
         {
             if (Running)
             {
+                IPv4Header iphdr = new IPv4Header();
+                iphdr.SrcAddr = IPAddress.Parse("127.0.0.1");
+                iphdr.DstAddr = IPAddress.Parse("127.0.0.1");
+                iphdr.HdrLength = (byte)sizeof(IPv4Header);
+                iphdr.Version = 4;
+                iphdr.Protocol = 132;//SCTP协议
+
+                .iphdr
+                data.Slice(8).Fill()
+
                 var sendBuff = new WinDivertBuffer(data.ToArray());
                 NativeOverlapped nol = default;
-                WinDivertAddress addr = default;
+                WinDivertAddress addr = new WinDivertAddress();
+                addr.Direction = WinDivertDirection.Outbound;
+                addr.Loopback = true;
                 uint sendLen = 0;
                 //wd.WinDivertSendEx(WDHandle, sendBuff, sendBuff.Length, 0, ref addr, ref sendLen, ref nol);
                 if (!WinDivert.WinDivertSendEx(WDHandle, sendBuff, sendBuff.Length, 0, ref addr))
@@ -188,7 +201,6 @@ and ip.Protocol=132 "//SCTP协议
                     Debug.WriteLine("Write Err: {0}", Marshal.GetLastWin32Error());
                 }
             }
-
         }
 
         public void RecvEx()
@@ -206,6 +218,7 @@ and ip.Protocol=132 "//SCTP协议
             }
         }
     }
+
 
 
 
