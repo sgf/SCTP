@@ -186,7 +186,7 @@ and ip.Protocol=132 "//SCTP协议
                 iphdr.Version = 4;
                 iphdr.Protocol = 132;//SCTP协议
 
-                .iphdr
+                iphdr
                 data.Slice(8).Fill()
 
                 var sendBuff = new WinDivertBuffer(data.ToArray());
