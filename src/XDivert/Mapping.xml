@@ -9,10 +9,7 @@
 
   <extension>
     <create class="XDivert.Device" visibility="public static" />
-    <create-cpp macro="WINDIVERT_FLAG_.*" enum="WINDIVERT_FLAGS" type="ushort" />
-    <create-cpp macro="WINDIVERT_PARAM_MAX" enum="WindivertParam_1" />
-    <create-cpp macro="WINDIVERT_SHUTDOWN_MAX" enum="WindivertShutdown_1" />
-    
+    <create-cpp macro="WINDIVERT_FLAG_.*" enum="WD_FLAGS" type="ushort" />
     <const from-macro="WINDIVERT_PRIORITY_HIGHEST" class="XDivert.Device" type="int"/>
     <const from-macro="WINDIVERT_PRIORITY_LOWEST" class="XDivert.Device" type="int"/>
     <const from-macro="WINDIVERT_PARAM_QUEUE_LENGTH_DEFAULT" class="XDivert.Device" type="int"/>

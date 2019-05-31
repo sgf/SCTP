@@ -186,6 +186,7 @@ and ip.Protocol=132 "//SCTP协议
                 iphdr.Version = 4;
                 iphdr.Protocol = 132;//SCTP协议
 
+
                 .iphdr
                 data.Slice(8).Fill()
 

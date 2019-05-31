@@ -7,7 +7,6 @@ namespace XDivert
     public class Macro
     {
 
-
         //#define WINDIVERT_IPHDR_GET_FRAGOFF(hdr)                    \
         //        (((hdr)->FragOff0) & 0xFF1F)m>
 
